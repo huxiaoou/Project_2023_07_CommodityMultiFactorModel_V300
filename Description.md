@@ -10,6 +10,8 @@
 | LIQUIDITY  | AMT,R                   | abs(Rmaj)/AMT                        | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | SR         | VOL,OI                  | VOL/OI                               | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | HR         | VOL,OI                  | dOI/VOL                              | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
+| NETOI      | OI,L,S                  | (sum(L)-sum(S))/OI                   | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
+| NETOIW     | OI,L,S                  | (w_sum(L)-w_sum(S))/OI               | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | SKEW       | R                       | Skew[T]R                             | T=(10,21,63,126,252)    | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
 | VOLATILITY | R                       | Std[T]R                              | T=(10,21,63,126,252)    | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
 | CV         | R                       | Std[T]R/abs(Aver[T]R)                | T=(10,21,63,126,252)    | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
