@@ -4,17 +4,19 @@
 
 | Factor     | Input                   | Fun                                  | Parameters              | Derived                                                               | Moving Average |
 |------------|-------------------------|--------------------------------------|-------------------------|-----------------------------------------------------------------------|----------------|
-| MTM        | R                       | .                                    | None                    | Sum[T]X, Sum[T]X/Std[T]X                                              | (5,10,15)      |
+| MTM        | R                       | .                                    | None                    | Sum[T]X, Sum[T]X/Std[T]X, T=(21,63,126,189,252)                       | (5,10,15)      |
 | BASIS      | basisRate               | .                                    | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | TS         | P,Pmin                  | (P/Pmin -1)*12/MonthD                | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | LIQUIDITY  | AMT,R                   | abs(Rmaj)/AMT                        | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | SR         | VOL,OI                  | VOL/OI                               | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | HR         | VOL,OI                  | dOI/VOL                              | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | SKEW       | R                       | Skew[T]R                             | T=(10,21,63,126,252)    | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
-| VOLATILITY | R                       | Std[T]R/Aver[T]R                     | T=(21,63,126,252)       | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
-| RSVOL      | open,high,low,close     | {ln(h/o)ln(h/c) + ln(l/o)ln(l/c)}[T] | T=(21,63,126,252)       | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
-| OI         | OI                      | OI/Aver[T]OI-1                       | T=(21,63,126,252)       | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
-| SIZE       | OI,contractMultiplier,P | P*OI*contractMultiplier              | T=(21,63,126,252)       | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
+| VOLATILITY | R                       | Std[T]R                              | T=(10,21,63,126,252)    | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
+| CV         | R                       | Std[T]R/abs(Aver[T]R)                | T=(10,21,63,126,252)    | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
+| SCV        | R                       | Std[T]R/Aver[T]R                     | T=(10,21,63,126,252)    | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
+| RSVOL      | open,high,low,close     | {ln(h/o)ln(h/c) + ln(l/o)ln(l/c)}[T] | T=(10,21,63,126,252)    | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
+| OI         | OI                      | OI/Aver[T]OI-1                       | T=(10,21,63,126,252)    | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
+| SIZE       | OI,contractMultiplier,P | P*OI*contractMultiplier              | T=(10,21,63,126,252)    | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
 | RSW        | RS                      | RS/W-AVER[T]RS-1                     | T=(63,126,189,252)      | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
 | CTP        | VOL,OI,P                | Corr[T](VOL/OI, P)                   | T=(63,126,189,252)      | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
 | CVP        | VOL,P                   | Corr[T](VOL, P)                      | T=(63,126,189,252)      | X - X[L] L=(21,63,252)                                                | (5,10,15)      |
@@ -30,6 +32,6 @@
 
 + major: return, amt, vol, oi, P(close)
 + minor: P(close)
-+ sum_by_instrument: P, VOL, OI, AMT
++ agg_by_instrument: P(close), VOL, OI, AMT
 + others: basisRate, registerStock
 + instru_idx: open,high,low,close
