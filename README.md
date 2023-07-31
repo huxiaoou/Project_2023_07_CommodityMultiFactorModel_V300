@@ -7,7 +7,7 @@
 | MTM        | R                       | .                                    | None                    | Sum[T]X, Sum[T]X/Std[T]X, T=(21,63,126,189,252)                       | (5,10,15)      |
 | BASIS      | basisRate               | .                                    | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | TS         | P,Pmin                  | (P/Pmin -1)*12/MonthD                | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
-| LIQUIDITY  | AMT,R                   | abs(Rmaj)/AMT                        | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
+| LIQUIDITY  | AMT,R                   | abs(R)/AMT                           | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | SR         | VOL,OI                  | VOL/OI                               | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | HR         | VOL,OI                  | dOI/VOL                              | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
 | NETOI      | OI,L,S                  | (sum(L)-sum(S))/OI                   | None                    | Aver[T]X, X - Aver[T]X, T=(21,63,126,189,252), X - X[L] L=(21,63,252) | (5,10,15)      |
