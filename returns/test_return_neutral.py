@@ -44,7 +44,6 @@ def cal_test_return_neutral(
     test_return_neutral_lib.initialize_table(t_table=test_return_neutral_lib_structure.m_tab, t_remove_existence=run_mode in ["O"])
     dst_lib_is_continuous = test_return_neutral_lib.check_continuity(append_date=bgn_date, t_calendar=calendar) if run_mode in ["A"] else 0
     if dst_lib_is_continuous == 0:
-        # --- update by date
         for trade_date in calendar.get_iter_list(t_bgn_date=bgn_date, t_stp_date=stp_date, t_ascending=True):
             test_return_df = test_return_lib.read_by_date(
                 t_trade_date=trade_date,
