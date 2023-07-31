@@ -1,6 +1,5 @@
 import os
 import datetime as dt
-import multiprocessing as mp
 import pandas as pd
 from skyrim.falkreath import CLib1Tab1, CManagerLibWriter
 from skyrim.whiterun import CCalendar, SetFontGreen, SetFontRed

@@ -1,5 +1,4 @@
 import datetime as dt
-import multiprocessing as mp
 import numpy as np
 import pandas as pd
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriterByDate
