@@ -28,5 +28,5 @@ def merge_instru_return(
     return_path = os.path.join(instruments_return_dir, return_file)
     return_df.to_csv(return_path, float_format="%.10f")
     print(return_df)
-    print("... @ {} {} return calculated".format(dt.datetime.now(), SetFontGreen("instrument major return")))
+    print("... @ {} {} calculated".format(dt.datetime.now(), SetFontGreen("instrument major return")))
     return 0

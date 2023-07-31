@@ -1,6 +1,6 @@
 import datetime as dt
 import pandas as pd
-from skyrim.whiterun import CCalendar, SetFontGreen
+from skyrim.whiterun import CCalendar, SetFontGreen, SetFontRed
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriter
 
 
@@ -22,8 +22,7 @@ def cal_available_universe(
         available_universe_dir: str,
         futures_by_instrument_dir: str, major_return_db_name: str,
         database_structure: dict[str, CLib1Tab1],
-        calendar: CCalendar,
-        price_type: str = "close"):
+        calendar: CCalendar):
     t0 = dt.datetime.now()
     _wanyuan, _yiyuan = 1e4, 1e8
     rolling_win, amt_threshold = available_universe_options["rolling_window"], available_universe_options["amount_threshold"]
@@ -36,34 +35,36 @@ def cal_available_universe(
     available_universe_lib_structure = database_structure["available_universe"]
     available_universe_lib = CManagerLibWriter(t_db_name=available_universe_lib_structure.m_lib_name, t_db_save_dir=available_universe_dir)
     available_universe_lib.initialize_table(t_table=available_universe_lib_structure.m_tab, t_remove_existence=run_mode in ["O"])
+    dst_lib_is_continuous = available_universe_lib.check_continuity(append_date=bgn_date, t_calendar=calendar) if run_mode in ["A"] else 0
+    if dst_lib_is_continuous == 0:
+        # --- load all amount and return data
+        amt_ma_data_for_available = {}
+        amt_data, return_data = {}, {}
+        major_return_db_reader = CManagerLibReader(futures_by_instrument_dir, major_return_db_name)
+        for instrument in instruments_universe:
+            major_return_df = major_return_db_reader.read_by_conditions(t_conditions=[
+                ("trade_date", ">=", base_date),
+                ("trade_date", "<", stp_date),
+            ], t_value_columns=["trade_date", "amount", "major_return"],
+                t_using_default_table=False, t_table_name=instrument.replace(".", "_")
+            ).set_index("trade_date")
+            amt_ma_data_for_available[instrument] = major_return_df["amount"].rolling(window=rolling_win).mean() * _wanyuan / _yiyuan
+            amt_data[instrument] = major_return_df["amount"] * _wanyuan / _yiyuan
+            return_data[instrument] = major_return_df["major_return"]
 
-    # --- load all amount and return data
-    amt_ma_data_for_available = {}
-    amt_data, return_data = {}, {}
-    major_return_db_reader = CManagerLibReader(futures_by_instrument_dir, major_return_db_name)
-    for instrument in instruments_universe:
-        major_return_df = major_return_db_reader.read_by_conditions(t_conditions=[
-            ("trade_date", ">=", base_date),
-            ("trade_date", "<", stp_date),
-        ], t_value_columns=["trade_date", "amount", "major_return"],
-            t_using_default_table=False, t_table_name=instrument.replace(".", "_")
-        ).set_index("trade_date")
-        amt_ma_data_for_available[instrument] = major_return_df["amount"].rolling(window=rolling_win).mean() * _wanyuan / _yiyuan
-        amt_data[instrument] = major_return_df["amount"] * _wanyuan / _yiyuan
-        return_data[instrument] = major_return_df["major_return"]
+        # --- reorganize and save
+        amt_ma_df_for_available = pd.DataFrame(amt_ma_data_for_available)
+        amt_df, return_df = pd.DataFrame(amt_data), pd.DataFrame(return_data)
+        filter_df: pd.DataFrame = amt_ma_df_for_available >= amt_threshold
+        filter_df = filter_df.loc[filter_df.index >= bgn_date]
+        res = []
+        filter_df.apply(get_available_universe_by_date, args=(return_df, amt_df, res), axis=1)
+        update_df = pd.concat(res).reset_index().set_index("trade_date").sort_index(ascending=True)
+        available_universe_lib.update(t_update_df=update_df, t_using_index=True)
 
-    # --- reorganize and save
-    amt_ma_df_for_available = pd.DataFrame(amt_ma_data_for_available)
-    amt_df, return_df = pd.DataFrame(amt_data), pd.DataFrame(return_data)
-    filter_df: pd.DataFrame = amt_ma_df_for_available >= amt_threshold
-    filter_df = filter_df.loc[filter_df.index >= bgn_date]
-    res = []
-    filter_df.apply(get_available_universe_by_date, args=(return_df, amt_df, res), axis=1)
-    update_df = pd.concat(res).reset_index().set_index("trade_date").sort_index(ascending=True)
-    available_universe_lib.update(t_update_df=update_df, t_using_index=True)
+        print(f"... {SetFontGreen('available universe')} are calculated")
+        print("... total time consuming: {:.2f} seconds".format((dt.datetime.now() - t0).total_seconds()))
+    else:
+        print(f"... {SetFontGreen('available universe')} {SetFontRed('FAILED')}  to update")
     available_universe_lib.close()
-
-    print(f"\n... {SetFontGreen('available universe')} are calculated")
-    print("... total time consuming: {:.2f} seconds".format((dt.datetime.now() - t0).total_seconds()))
-
     return 0

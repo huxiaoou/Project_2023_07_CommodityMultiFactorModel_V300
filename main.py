@@ -174,7 +174,7 @@ if __name__ == "__main__":
     signals_type = args.type.upper() if switch in ["SIMU", "EVAL"] else None
     exe_date = args.exeDate.upper() if switch in ["POS"] else None
 
-    #
+    # some shared data
     calendar = CCalendar(calendar_path)
     instru_into_tab = CInstrumentInfoTable(instrument_info_path, t_index_label="windCode", t_type="CSV")
 
