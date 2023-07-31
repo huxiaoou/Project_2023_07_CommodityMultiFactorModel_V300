@@ -1,25 +1,31 @@
 import os
 import datetime as dt
 import pandas as pd
+from skyrim.falkreath import CManagerLibReader
 
 
 def merge_instru_return(
         bgn_date: str, stp_date: str,
-        major_return_dir: str, instruments_return_dir: str,
+        futures_by_instrument_dir, major_return_db_name: str,
+        instruments_return_dir: str,
         concerned_instruments_universe: list[str]):
+    major_return_db_reader = CManagerLibReader(futures_by_instrument_dir, major_return_db_name)
+
     major_return_data = {}
     for instrument in concerned_instruments_universe:
-        major_return_file = "major_return.{}.close.csv.gz".format(instrument)
-        major_return_path = os.path.join(major_return_dir, major_return_file)
-        major_return_df = pd.read_csv(major_return_path, dtype={"trade_date": str}).set_index("trade_date")
+        major_return_df = major_return_db_reader.read_by_conditions(t_conditions=[
+            ("trade_date", ">=", bgn_date),
+            ("trade_date", "<", stp_date),
+        ], t_value_columns=["trade_date", "major_return"],
+            t_using_default_table=False, t_table_name=instrument.replace(".", "_")
+        ).set_index("trade_date")
         major_return_data[instrument] = major_return_df["major_return"]
+    major_return_db_reader.close()
 
     return_df = pd.DataFrame(major_return_data)
-    filter_dates = (return_df.index >= bgn_date) & (return_df.index < stp_date)
-    return_df = return_df.loc[filter_dates]
     return_file = "instruments.return.csv.gz"
     return_path = os.path.join(instruments_return_dir, return_file)
-    return_df.to_csv(return_path, float_format="%.8f")
+    return_df.to_csv(return_path, float_format="%.10f")
     print(return_df)
     print("... @ {} instruments major return calculated".format(dt.datetime.now()))
     return 0

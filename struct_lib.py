@@ -1,11 +1,11 @@
 import itertools as ittl
-from skyrim.falkreath import CLib1Tab1, CTable, Dict
+from skyrim.falkreath import CLib1Tab1, CTable
 from config_factor import factors_pool_options, sector_classification, concerned_instruments_universe
 from config_factor import test_windows, factors_return_lags, factors, factors_neutral, neutral_method, sectors
 
 # --- DATABASE STRUCTURE
 # available universe structure
-database_structure: Dict[str, CLib1Tab1] = {
+database_structure: dict[str, CLib1Tab1] = {
     "available_universe": CLib1Tab1(
         t_lib_name="available_universe.db",
         t_tab=CTable({
