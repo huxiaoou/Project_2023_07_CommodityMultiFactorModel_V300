@@ -1,6 +1,7 @@
 import os
 import datetime as dt
 import pandas as pd
+from skyrim.whiterun import SetFontGreen
 from skyrim.falkreath import CManagerLibReader
 
 
@@ -27,5 +28,5 @@ def merge_instru_return(
     return_path = os.path.join(instruments_return_dir, return_file)
     return_df.to_csv(return_path, float_format="%.10f")
     print(return_df)
-    print("... @ {} instruments major return calculated".format(dt.datetime.now()))
+    print("... @ {} {} return calculated".format(dt.datetime.now(), SetFontGreen("instrument major return")))
     return 0

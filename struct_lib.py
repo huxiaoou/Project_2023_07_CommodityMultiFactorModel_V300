@@ -11,10 +11,7 @@ database_structure: dict[str, CLib1Tab1] = {
         t_tab=CTable({
             "table_name": "available_universe",
             "primary_keys": {"trade_date": "TEXT", "instrument": "TEXT"},
-            "value_columns": {
-                **{"return": "REAL", "amount": "REAL"},
-                **{"WGT{:02d}".format(z): "REAL" for z in test_windows}
-            }
+            "value_columns": {"return": "REAL", "amount": "REAL"}
         })
     )}
 

@@ -1,11 +1,7 @@
 """
-created @ 2023-04-20
+created @ 2023-07-31
 0.
 """
-
-md_bgn_date = "20130101"
-factors_bgn_date = "20140401"
-factors_pool_bgn_date = "20140801"
 
 # universe
 concerned_instruments_universe = [
