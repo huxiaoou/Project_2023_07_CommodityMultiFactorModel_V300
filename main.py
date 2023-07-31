@@ -4,7 +4,7 @@ from returns.instrument_return import merge_instru_return
 from returns.available_universe import cal_available_universe
 from returns.market_return import cal_market_return
 from returns.test_return import cal_test_return
-from returns.test_return_neutral import cal_test_return_neutral_mp
+from returns.test_return_neutral import cal_test_return_neutral
 from factors.factors_algorithm_BASIS import cal_factors_exposure_basis_mp
 from factors.factors_algorithm_BETA import cal_factors_exposure_beta_mp
 from factors.factors_algorithm_CSP import cal_factors_exposure_csp_mp
@@ -210,19 +210,18 @@ if __name__ == "__main__":
             database_structure=database_structure,
             calendar=calendar,
         )
-    # elif switch in ["TRN"]:  # "TEST RETURN NEUTRAL"
-    #     cal_test_return_neutral_mp(
-    #         proc_num=proc_num,
-    #         test_windows=test_windows, neutral_method=neutral_method,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         instruments_universe=concerned_instruments_universe,
-    #         available_universe_dir=available_universe_dir,
-    #         sector_classification=sector_classification,
-    #         test_return_dir=test_return_dir,
-    #         test_return_neutral_dir=test_return_neutral_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
+    elif switch in ["TRN"]:  # "TEST RETURN NEUTRAL"
+        cal_test_return_neutral(
+            neutral_method=neutral_method,
+            run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
+            instruments_universe=concerned_instruments_universe,
+            available_universe_dir=available_universe_dir,
+            sector_classification=sector_classification,
+            test_return_dir=test_return_dir,
+            test_return_neutral_dir=test_return_neutral_dir,
+            database_structure=database_structure,
+            calendar=calendar,
+        )
     # elif switch in ["FE"]:
     #     if factor == "BASIS":
     #         cal_factors_exposure_basis_mp(proc_num=proc_num, basis_windows=factors_args["BASIS"],
