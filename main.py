@@ -3,7 +3,7 @@ import datetime as dt
 from returns.instrument_return import merge_instru_return
 from returns.available_universe import cal_available_universe
 from returns.market_return import cal_market_return
-from returns.test_return import cal_test_return_mp
+from returns.test_return import cal_test_return
 from returns.test_return_neutral import cal_test_return_neutral_mp
 from factors.factors_algorithm_BASIS import cal_factors_exposure_basis_mp
 from factors.factors_algorithm_BETA import cal_factors_exposure_beta_mp
@@ -167,7 +167,7 @@ if __name__ == "__main__":
                                   "ICS", "ICNS", "ICDS", "ICC", "FECOR",
                                   "SIMU", "EVAL", "BY", "POS"] else args.mode.upper()
     bgn_date, stp_date = args.bgn, args.stp
-    if stp_date is None and (switch not in ["MR"]):
+    if (stp_date is None) and (switch not in ["MR"]):
         stp_date = (dt.datetime.strptime(bgn_date, "%Y%m%d") + dt.timedelta(days=1)).strftime("%Y%m%d")
     proc_num = args.process
     factor = args.factor.upper() if switch in ["FE"] else None
@@ -202,16 +202,14 @@ if __name__ == "__main__":
             available_universe_dir=available_universe_dir,
             database_structure=database_structure,
         )
-    # elif switch in ["TR"]:  # "TEST RETURN"
-    #     cal_test_return_mp(
-    #         proc_num=proc_num,
-    #         test_windows=test_windows,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         instruments_return_dir=instruments_return_dir,
-    #         test_return_dir=test_return_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure
-    #     )
+    elif switch in ["TR"]:  # "TEST RETURN"
+        cal_test_return(
+            run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
+            instruments_return_dir=instruments_return_dir,
+            test_return_dir=test_return_dir,
+            database_structure=database_structure,
+            calendar=calendar,
+        )
     # elif switch in ["TRN"]:  # "TEST RETURN NEUTRAL"
     #     cal_test_return_neutral_mp(
     #         proc_num=proc_num,

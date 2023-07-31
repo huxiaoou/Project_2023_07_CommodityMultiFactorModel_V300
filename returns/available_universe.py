@@ -65,6 +65,6 @@ def cal_available_universe(
         print(f"... {SetFontGreen('available universe')} are calculated")
         print("... total time consuming: {:.2f} seconds".format((dt.datetime.now() - t0).total_seconds()))
     else:
-        print(f"... {SetFontGreen('available universe')} {SetFontRed('FAILED')}  to update")
+        print(f"... {SetFontGreen('available universe')} {SetFontRed('FAILED')} to update")
     available_universe_lib.close()
     return 0

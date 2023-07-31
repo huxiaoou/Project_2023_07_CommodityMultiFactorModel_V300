@@ -16,16 +16,15 @@ database_structure: dict[str, CLib1Tab1] = {
     )}
 
 # test return structure
-test_return_lbl_list = ["test_return_{:03d}".format(w) for w in test_windows]
 database_structure.update({
-    z: CLib1Tab1(
-        t_lib_name=z + ".db",
+    "test_return": CLib1Tab1(
+        t_lib_name="test_return.db",
         t_tab=CTable({
-            "table_name": z,
+            "table_name": "test_return",
             "primary_keys": {"trade_date": "TEXT", "instrument": "TEXT"},
             "value_columns": {"value": "REAL"},
         })
-    ) for z in test_return_lbl_list})
+    )})
 
 # test return neutral structure
 test_return_neutral_lbl_list = ["test_return_{:03d}.WS".format(w) for w in test_windows]
