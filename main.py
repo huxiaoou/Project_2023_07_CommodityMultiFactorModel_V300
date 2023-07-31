@@ -167,7 +167,7 @@ if __name__ == "__main__":
                                   "ICS", "ICNS", "ICDS", "ICC", "FECOR",
                                   "SIMU", "EVAL", "BY", "POS"] else args.mode.upper()
     bgn_date, stp_date = args.bgn, args.stp
-    if stp_date is None:
+    if stp_date is None and (switch not in ["MR"]):
         stp_date = (dt.datetime.strptime(bgn_date, "%Y%m%d") + dt.timedelta(days=1)).strftime("%Y%m%d")
     proc_num = args.process
     factor = args.factor.upper() if switch in ["FE"] else None
@@ -196,12 +196,12 @@ if __name__ == "__main__":
             database_structure=database_structure,
             calendar=calendar,
         )
-    # elif switch in ["MR"]:  # "MARKET RETURN"
-    #     cal_market_return(
-    #         instruments_return_dir=instruments_return_dir,
-    #         available_universe_dir=available_universe_dir,
-    #         database_structure=database_structure,
-    #     )
+    elif switch in ["MR"]:  # "MARKET RETURN"
+        cal_market_return(
+            instruments_return_dir=instruments_return_dir,
+            available_universe_dir=available_universe_dir,
+            database_structure=database_structure,
+        )
     # elif switch in ["TR"]:  # "TEST RETURN"
     #     cal_test_return_mp(
     #         proc_num=proc_num,

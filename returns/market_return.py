@@ -2,6 +2,7 @@ import os
 import numpy as np
 import datetime as dt
 import pandas as pd
+from skyrim.whiterun import SetFontGreen
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader
 
 
@@ -40,9 +41,8 @@ def cal_market_return(instruments_return_dir: str,
     market_index_df = pd.DataFrame(market_index_return_data).set_index("trade_date")
     market_index_file = "market.return.csv.gz"
     market_index_path = os.path.join(instruments_return_dir, market_index_file)
-    market_index_df.to_csv(market_index_path, float_format="%.8f")
+    market_index_df.to_csv(market_index_path, float_format="%.10f")
 
-    print("... @ {} market index return calculated".format(dt.datetime.now()))
     print(market_index_df)
-
+    print("... @ {} {} calculated".format(dt.datetime.now(), SetFontGreen('market index return')))
     return 0
