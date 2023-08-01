@@ -114,7 +114,8 @@ sector_classification = {
 }
 
 # --- factor settings ---
-factors_mtm = ["MTM"]
+windows_mtm = (10, 21, 63, 126, 189, 252)
+factors_mtm = ["MTM"] + [f"MTMS{_:03d}" for _ in windows_mtm]
 factors = factors_mtm
 factors_list_size = len(factors)
 factors_neutral = ["{}.WS".format(_) for _ in factors]

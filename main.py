@@ -6,6 +6,8 @@ from returns.market_return import cal_market_return
 from returns.test_return import cal_test_return
 from returns.test_return_neutral import cal_test_return_neutral
 from factors.factors_MTM import CFactorMTM
+from factors.factors_transformer import mp_cal_factor_transform_sum
+
 from factors.factors_neutral import cal_factors_neutral_mp
 from factors.factors_normalize_delinear import cal_factors_normalize_and_delinear_mp
 from factors.factors_return import cal_factors_return_mp
@@ -41,7 +43,8 @@ from setup_model import (futures_by_instrument_dir, major_return_db_name, major_
                          calendar_path, instrument_info_path)
 from config_factor import (concerned_instruments_universe, sector_classification, sectors,
                            available_universe_options, test_windows, factors, neutral_method,
-                           factors_pool_options, factors_return_lags)
+                           factors_pool_options, factors_return_lags,
+                           windows_mtm, )
 from config_portfolio import (available_factors, timing_factors,
                               pid, factors_return_lag, fast_n_slow_n_comb, raw_portfolio_options, pure_portfolio_options,
                               minimum_abs_weight, test_signals,
@@ -213,9 +216,14 @@ if __name__ == "__main__":
                 concerned_instruments_universe=concerned_instruments_universe,
                 factors_exposure_dir=factors_exposure_dir,
                 database_structure=database_structure,
-                calendar=calendar,
-            )
+                calendar=calendar)
             factor_agent.core(run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
+            mp_cal_factor_transform_sum(proc_num=proc_num, sum_wins=windows_mtm, src_factor_id="MTM",
+                                        run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
+                                        concerned_instruments_universe=concerned_instruments_universe,
+                                        factors_exposure_dir=factors_exposure_dir,
+                                        database_structure=database_structure,
+                                        calendar=calendar)
 
     # elif switch in ["FEN"]:
     #     cal_factors_neutral_mp(

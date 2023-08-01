@@ -127,7 +127,7 @@ class CFactors(object):
         factor_lib.close()
         return dst_lib_is_continuous
 
-    def __get_update_df(self, run_mode: str, bgn_date: str, stp_date: str) -> pd.DataFrame:
+    def _get_update_df(self, run_mode: str, bgn_date: str, stp_date: str) -> pd.DataFrame:
         all_factor_data = {}
         for instrument in self.universe:
             all_factor_data[instrument] = self._get_instrument_factor_exposure(instrument, run_mode, bgn_date, stp_date)
@@ -144,10 +144,11 @@ class CFactors(object):
     def core(self, run_mode: str, bgn_date: str, stp_date: str):
         self._set_factor_id()
         if self.__check_continuity(run_mode, bgn_date) == 0:
-            update_df = self.__get_update_df(run_mode, bgn_date, stp_date)
+            update_df = self._get_update_df(run_mode, bgn_date, stp_date)
             self.__save(update_df, using_index=True, run_mode=run_mode)
         else:
             print(f"... {SetFontGreen(self.factor_id)} {SetFontRed('FAILED')} to update")
+        return 0
 
 
 class CFactorsWithMajorReturn(CFactors):
