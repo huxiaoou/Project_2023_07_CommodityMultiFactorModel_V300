@@ -114,14 +114,8 @@ sector_classification = {
 }
 
 # --- factor settings ---
-factors_args = {
-    "BASIS": [147], "CSP": [189], "CTP": [63], "CVP": [63],
-    "SKEW": [10], "MTM": [231], "TS": [126], "RSW252HL": [63],
-    "SIZE": [252], "TO": [252], "BETA": [21],
-}
-factors = []
-for factor_class, arg_lst in factors_args.items():
-    factors += ["{}{:03d}".format(factor_class, z) for z in arg_lst]
+factors_mtm = ["MTM"]
+factors = factors_mtm
 factors_list_size = len(factors)
 factors_neutral = ["{}.WS".format(_) for _ in factors]
 

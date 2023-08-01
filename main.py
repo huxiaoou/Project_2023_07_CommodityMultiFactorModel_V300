@@ -5,24 +5,7 @@ from returns.available_universe import cal_available_universe
 from returns.market_return import cal_market_return
 from returns.test_return import cal_test_return
 from returns.test_return_neutral import cal_test_return_neutral
-from factors.factors_algorithm_BASIS import cal_factors_exposure_basis_mp
-from factors.factors_algorithm_BETA import cal_factors_exposure_beta_mp
-from factors.factors_algorithm_CSP import cal_factors_exposure_csp_mp
-from factors.factors_algorithm_CSR import cal_factors_exposure_csr_mp
-from factors.factors_algorithm_CTP import cal_factors_exposure_ctp_mp
-from factors.factors_algorithm_CTR import cal_factors_exposure_ctr_mp
-from factors.factors_algorithm_CV import cal_factors_exposure_cv_mp
-from factors.factors_algorithm_CVP import cal_factors_exposure_cvp_mp
-from factors.factors_algorithm_CVR import cal_factors_exposure_cvr_mp
-from factors.factors_algorithm_HP import cal_factors_exposure_hp_mp
-from factors.factors_algorithm_MTM import cal_factors_exposure_mtm_mp
-from factors.factors_algorithm_RSW import cal_factors_exposure_rsw_mp
-from factors.factors_algorithm_SGM import cal_factors_exposure_sgm_mp
-from factors.factors_algorithm_SIZE import cal_factors_exposure_size_mp
-from factors.factors_algorithm_SKEW import cal_factors_exposure_skew_mp
-from factors.factors_algorithm_TO import cal_factors_exposure_to_mp
-from factors.factors_algorithm_TS import cal_factors_exposure_ts_mp
-from factors.factors_algorithm_VOL import cal_factors_exposure_vol_mp
+from factors.factors_MTM import CFactorMTM
 from factors.factors_neutral import cal_factors_neutral_mp
 from factors.factors_normalize_delinear import cal_factors_normalize_and_delinear_mp
 from factors.factors_return import cal_factors_return_mp
@@ -57,7 +40,7 @@ from setup_model import (futures_by_instrument_dir, major_return_db_name, major_
                          simulations_opt_dir, evaluations_opt_dir, by_year_dir, simu_positions_and_trades_dir,
                          calendar_path, instrument_info_path)
 from config_factor import (concerned_instruments_universe, sector_classification, sectors,
-                           available_universe_options, test_windows, factors_args, factors, neutral_method,
+                           available_universe_options, test_windows, factors, neutral_method,
                            factors_pool_options, factors_return_lags)
 from config_portfolio import (available_factors, timing_factors,
                               pid, factors_return_lag, fast_n_slow_n_comb, raw_portfolio_options, pure_portfolio_options,
@@ -222,173 +205,18 @@ if __name__ == "__main__":
             database_structure=database_structure,
             calendar=calendar,
         )
-    # elif switch in ["FE"]:
-    #     if factor == "BASIS":
-    #         cal_factors_exposure_basis_mp(proc_num=proc_num, basis_windows=factors_args["BASIS"],
-    #                                       run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                       concerned_instruments_universe=concerned_instruments_universe,
-    #                                       factors_exposure_dir=factors_exposure_dir,
-    #                                       fundamental_dir=fundamental_by_instru_dir,
-    #                                       major_minor_dir=major_minor_dir,
-    #                                       calendar_path=calendar_path,
-    #                                       database_structure=database_structure,
-    #                                       )
-    #     if factor == "BETA":
-    #         cal_factors_exposure_beta_mp(proc_num=proc_num, beta_windows=factors_args["BETA"],
-    #                                      run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                      concerned_instruments_universe=concerned_instruments_universe,
-    #                                      factors_exposure_dir=factors_exposure_dir,
-    #                                      instruments_return_dir=instruments_return_dir,
-    #                                      major_return_dir=major_return_dir,
-    #                                      calendar_path=calendar_path,
-    #                                      database_structure=database_structure,
-    #                                      )
-    #     if factor == "CSP":
-    #         cal_factors_exposure_csp_mp(proc_num=proc_num, csp_windows=factors_args["CSP"],
-    #                                     run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                     concerned_instruments_universe=concerned_instruments_universe,
-    #                                     factors_exposure_dir=factors_exposure_dir,
-    #                                     major_return_dir=major_return_dir,
-    #                                     calendar_path=calendar_path,
-    #                                     database_structure=database_structure,
-    #                                     )
-    #     if factor == "CSR":
-    #         cal_factors_exposure_csr_mp(proc_num=proc_num, csr_windows=factors_args["CSR"],
-    #                                     run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                     concerned_instruments_universe=concerned_instruments_universe,
-    #                                     factors_exposure_dir=factors_exposure_dir,
-    #                                     major_return_dir=major_return_dir,
-    #                                     calendar_path=calendar_path,
-    #                                     database_structure=database_structure,
-    #                                     )
-    #     if factor == "CTP":
-    #         cal_factors_exposure_ctp_mp(proc_num=proc_num, ctp_windows=factors_args["CTP"],
-    #                                     run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                     concerned_instruments_universe=concerned_instruments_universe,
-    #                                     factors_exposure_dir=factors_exposure_dir,
-    #                                     major_return_dir=major_return_dir,
-    #                                     calendar_path=calendar_path,
-    #                                     database_structure=database_structure,
-    #                                     )
-    #     if factor == "CTR":
-    #         cal_factors_exposure_ctr_mp(proc_num=proc_num, ctr_windows=factors_args["CTR"],
-    #                                     run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                     concerned_instruments_universe=concerned_instruments_universe,
-    #                                     factors_exposure_dir=factors_exposure_dir,
-    #                                     major_return_dir=major_return_dir,
-    #                                     calendar_path=calendar_path,
-    #                                     database_structure=database_structure,
-    #                                     )
-    #     if factor == "CV":
-    #         cal_factors_exposure_cv_mp(proc_num=proc_num, cv_windows=factors_args["CV"],
-    #                                    run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                    concerned_instruments_universe=concerned_instruments_universe,
-    #                                    factors_exposure_dir=factors_exposure_dir,
-    #                                    major_return_dir=major_return_dir,
-    #                                    calendar_path=calendar_path,
-    #                                    database_structure=database_structure,
-    #                                    )
-    #     if factor == "CVP":
-    #         cal_factors_exposure_cvp_mp(proc_num=proc_num, cvp_windows=factors_args["CVP"],
-    #                                     run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                     concerned_instruments_universe=concerned_instruments_universe,
-    #                                     factors_exposure_dir=factors_exposure_dir,
-    #                                     major_return_dir=major_return_dir,
-    #                                     calendar_path=calendar_path,
-    #                                     database_structure=database_structure,
-    #                                     )
-    #     if factor == "CVR":
-    #         cal_factors_exposure_cvr_mp(proc_num=proc_num, cvr_windows=factors_args["CVR"],
-    #                                     run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                     concerned_instruments_universe=concerned_instruments_universe,
-    #                                     factors_exposure_dir=factors_exposure_dir,
-    #                                     major_return_dir=major_return_dir,
-    #                                     calendar_path=calendar_path,
-    #                                     database_structure=database_structure,
-    #                                     )
-    #     if factor == "HP":
-    #         cal_factors_exposure_hp_mp(proc_num=proc_num, hp_windows=factors_args["HP"],
-    #                                    run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                    concerned_instruments_universe=concerned_instruments_universe,
-    #                                    factors_exposure_dir=factors_exposure_dir,
-    #                                    major_return_dir=major_return_dir,
-    #                                    calendar_path=calendar_path,
-    #                                    database_structure=database_structure,
-    #                                    )
-    #     if factor == "MTM":
-    #         cal_factors_exposure_mtm_mp(proc_num=proc_num, mtm_windows=factors_args["MTM"],
-    #                                     run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                     concerned_instruments_universe=concerned_instruments_universe,
-    #                                     factors_exposure_dir=factors_exposure_dir,
-    #                                     major_return_dir=major_return_dir,
-    #                                     calendar_path=calendar_path,
-    #                                     database_structure=database_structure,
-    #                                     )
-    #     if factor == "RSW":
-    #         cal_factors_exposure_rsw_mp(proc_num=proc_num, rsw_windows=[252], half_life_windows=factors_args["RSW252HL"],
-    #                                     run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                     concerned_instruments_universe=concerned_instruments_universe,
-    #                                     factors_exposure_dir=factors_exposure_dir,
-    #                                     fundamental_dir=fundamental_by_instru_dir,
-    #                                     major_minor_dir=major_minor_dir,
-    #                                     calendar_path=calendar_path,
-    #                                     database_structure=database_structure,
-    #                                     )
-    #     if factor == "SGM":
-    #         cal_factors_exposure_sgm_mp(proc_num=proc_num, sgm_windows=factors_args["SGM"],
-    #                                     run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                     concerned_instruments_universe=concerned_instruments_universe,
-    #                                     factors_exposure_dir=factors_exposure_dir,
-    #                                     major_return_dir=major_return_dir,
-    #                                     calendar_path=calendar_path,
-    #                                     database_structure=database_structure,
-    #                                     )
-    #     if factor == "SIZE":
-    #         cal_factors_exposure_size_mp(proc_num=proc_num, size_windows=factors_args["SIZE"],
-    #                                      run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                      concerned_instruments_universe=concerned_instruments_universe,
-    #                                      factors_exposure_dir=factors_exposure_dir,
-    #                                      major_return_dir=major_return_dir,
-    #                                      calendar_path=calendar_path,
-    #                                      database_structure=database_structure,
-    #                                      )
-    #     if factor == "SKEW":
-    #         cal_factors_exposure_skew_mp(proc_num=proc_num, skew_windows=factors_args["SKEW"],
-    #                                      run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                      concerned_instruments_universe=concerned_instruments_universe,
-    #                                      factors_exposure_dir=factors_exposure_dir,
-    #                                      major_return_dir=major_return_dir,
-    #                                      calendar_path=calendar_path,
-    #                                      database_structure=database_structure,
-    #                                      )
-    #     if factor == "TO":
-    #         cal_factors_exposure_to_mp(proc_num=proc_num, to_windows=factors_args["TO"],
-    #                                    run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                    concerned_instruments_universe=concerned_instruments_universe,
-    #                                    factors_exposure_dir=factors_exposure_dir,
-    #                                    major_return_dir=major_return_dir,
-    #                                    calendar_path=calendar_path,
-    #                                    database_structure=database_structure,
-    #                                    )
-    #     if factor == "TS":
-    #         cal_factors_exposure_ts_mp(proc_num=proc_num, ts_windows=factors_args["TS"],
-    #                                    run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                    concerned_instruments_universe=concerned_instruments_universe,
-    #                                    factors_exposure_dir=factors_exposure_dir,
-    #                                    major_minor_dir=major_minor_dir,
-    #                                    md_dir=md_by_instru_dir,
-    #                                    calendar_path=calendar_path,
-    #                                    database_structure=database_structure,
-    #                                    )
-    #     if factor == "VOL":
-    #         cal_factors_exposure_vol_mp(proc_num=proc_num, vol_windows=factors_args["VOL"],
-    #                                     run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #                                     concerned_instruments_universe=concerned_instruments_universe,
-    #                                     factors_exposure_dir=factors_exposure_dir,
-    #                                     major_return_dir=major_return_dir,
-    #                                     calendar_path=calendar_path,
-    #                                     database_structure=database_structure,
-    #                                     )
+    elif switch in ["FE"]:
+        if factor == "MTM":
+            factor_agent = CFactorMTM(
+                futures_by_instrument_dir=futures_by_instrument_dir,
+                major_return_db_name=major_return_db_name,
+                concerned_instruments_universe=concerned_instruments_universe,
+                factors_exposure_dir=factors_exposure_dir,
+                database_structure=database_structure,
+                calendar=calendar,
+            )
+            factor_agent.core(run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
+
     # elif switch in ["FEN"]:
     #     cal_factors_neutral_mp(
     #         proc_num=proc_num, factors=factors,
