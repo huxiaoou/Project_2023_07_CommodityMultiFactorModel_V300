@@ -1,7 +1,8 @@
 import itertools as ittl
 from skyrim.falkreath import CLib1Tab1, CTable
 from config_project import factors_pool_options, sector_classification, concerned_instruments_universe
-from config_project import test_windows, factors_return_lags, factors, factors_neutral, neutral_method, sectors
+from config_project import test_windows, factors_return_lags, neutral_method, sectors
+from config_factor import factors, factors_neutral
 
 # --- DATABASE STRUCTURE
 # available universe structure

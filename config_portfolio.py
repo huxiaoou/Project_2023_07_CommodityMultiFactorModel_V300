@@ -1,8 +1,9 @@
 import itertools as ittl
 from config_project import test_windows
 from config_project import sectors, sector_classification
-from config_project import factors_pool_options, factors
+from config_project import factors_pool_options
 from config_project import concerned_instruments_universe
+from config_factor import factors
 
 # secondary parameters
 cost_rate = 5e-4
@@ -217,6 +218,7 @@ test_signals = {
 
 if __name__ == "__main__":
     import pandas as pd
+
     print("Total number of factors = {}".format(len(factors)))  # 103
     print("\n".join(factors))
     print(selected_sectors)
