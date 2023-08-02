@@ -6,7 +6,7 @@ from returns.market_return import cal_market_return
 from returns.test_return import cal_test_return
 from returns.test_return_neutral import cal_test_return_neutral
 from factors.factors_MTM import CFactorMTM
-from factors.factors_transformer import mp_cal_factor_transform_sum
+from factors.factors_transformer import CMpTransformerSum
 
 from factors.factors_neutral import cal_factors_neutral_mp
 from factors.factors_normalize_delinear import cal_factors_normalize_and_delinear_mp
@@ -179,20 +179,19 @@ if __name__ == "__main__":
         )
     elif switch in ["FE"]:
         if factor == "MTM":
-            factor_agent = CFactorMTM(
+            agent_factor = CFactorMTM(
                 futures_by_instrument_dir=futures_by_instrument_dir,
                 major_return_db_name=major_return_db_name,
                 concerned_instruments_universe=concerned_instruments_universe,
                 factors_exposure_dir=factors_exposure_dir,
                 database_structure=database_structure,
                 calendar=calendar)
-            factor_agent.core(run_mode=run_mode, bgn_date=bgn_dates_in_overwrite_mod["FEB"] if run_mode in ["O"] else bgn_date, stp_date=stp_date)
-            mp_cal_factor_transform_sum(proc_num=proc_num, sum_wins=windows_mtm, src_factor_id="MTM",
-                                        run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-                                        concerned_instruments_universe=concerned_instruments_universe,
-                                        factors_exposure_dir=factors_exposure_dir,
-                                        database_structure=database_structure,
-                                        calendar=calendar)
+            agent_factor.core(run_mode=run_mode, bgn_date=bgn_dates_in_overwrite_mod["FEB"] if run_mode in ["O"] else bgn_date, stp_date=stp_date)
+            agent_mp = CMpTransformerSum(proc_num=proc_num, arg_wins=windows_mtm, src_factor_id="MTM", run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
+            agent_mp.mp_cal_transform(concerned_instruments_universe=concerned_instruments_universe,
+                                      factors_exposure_dir=factors_exposure_dir,
+                                      database_structure=database_structure,
+                                      calendar=calendar)
 
     # elif switch in ["FEN"]:
     #     cal_factors_neutral_mp(

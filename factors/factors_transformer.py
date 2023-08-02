@@ -1,4 +1,5 @@
 import datetime as dt
+import numpy as np
 import pandas as pd
 import multiprocessing as mp
 from skyrim.whiterun import CCalendar, SetFontGreen
@@ -11,7 +12,7 @@ from factors.factors_base import CFactors
 # -----------------------------------------
 
 class CFactorsTransformer(CFactors):
-    def __init__(self, src_factor_id: str,
+    def __init__(self, arg_win: int, src_factor_id: str,
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
@@ -19,10 +20,13 @@ class CFactorsTransformer(CFactors):
                  ):
         super().__init__(concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
         self.src_factor_id = src_factor_id
+        self.arg_win = arg_win
         self.base_date = ""
 
     def _set_base_date(self, bgn_date: str, stp_date: str):
-        pass
+        iter_dates = self.calendar.get_iter_list(bgn_date, stp_date, True)
+        self.base_date = self.calendar.get_next_date(iter_dates[0], -self.arg_win + 1)
+        return 0
 
     def __get_src_lib_reader(self):
         factor_lib_struct = self.database_structure[self.src_factor_id]
@@ -61,40 +65,149 @@ class CFactorsTransformer(CFactors):
 
 
 class CFactorsTransformerSum(CFactorsTransformer):
-    def __init__(self, sum_win: int, src_factor_id: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar,
-                 ):
-        super().__init__(src_factor_id, concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
-        self.sum_win = sum_win
+    def _set_factor_id(self):
+        self.factor_id = f"{self.src_factor_id}S{self.arg_win:03d}"
+        return 0
+
+    def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
+        new_df = pivot_df.rolling(window=self.arg_win).sum()
+        return new_df
+
+
+class CFactorsTransformerAver(CFactorsTransformer):
 
     def _set_factor_id(self):
-        self.factor_id = f"{self.src_factor_id}S{self.sum_win:03d}"
+        self.factor_id = f"{self.src_factor_id}A{self.arg_win:03d}"
+        return 0
+
+    def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
+        new_df = pivot_df.rolling(window=self.arg_win).mean()
+        return new_df
+
+
+class CFactorsTransformerSharpe(CFactorsTransformer):
+    def _set_factor_id(self):
+        self.factor_id = f"{self.src_factor_id}SP{self.arg_win:03d}"
+        return 0
+
+    def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
+        mean_df = pivot_df.rolling(window=self.arg_win).mean()
+        std_df = pivot_df.rolling(window=self.arg_win).std()
+        new_df = mean_df / std_df * np.sqrt(252)
+        return new_df
+
+
+class CFactorsTransformerBreakRatio(CFactorsTransformer):
+    def _set_factor_id(self):
+        self.factor_id = f"{self.src_factor_id}BR{self.arg_win:03d}"
+        return 0
+
+    def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
+        new_df = pivot_df / pivot_df.rolling(self.arg_win).mean() - 1
+        return new_df
+
+
+class CFactorsTransformerBreakDiff(CFactorsTransformer):
+
+    def _set_factor_id(self):
+        self.factor_id = f"{self.src_factor_id}BD{self.arg_win:03d}"
+        return 0
+
+    def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
+        new_df = pivot_df - pivot_df.rolling(self.arg_win).mean()
+        return new_df
+
+
+class CFactorsTransformerLagRatio(CFactorsTransformer):
+
+    def _set_factor_id(self):
+        self.factor_id = f"{self.src_factor_id}LR{self.arg_win:03d}"
         return 0
 
     def _set_base_date(self, bgn_date: str, stp_date: str):
         iter_dates = self.calendar.get_iter_list(bgn_date, stp_date, True)
-        self.base_date = self.calendar.get_next_date(iter_dates[0], -self.sum_win + 1)
+        self.base_date = self.calendar.get_next_date(iter_dates[0], -self.arg_win)
         return 0
 
     def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
-        new_df = pivot_df.rolling(window=self.sum_win).sum()
+        new_df = pivot_df / pivot_df.shift(self.arg_win) - 1
         return new_df
 
 
-def mp_cal_factor_transform_sum(proc_num: int,
-                                sum_wins: tuple[int], src_factor_id: str,
-                                run_mode, bgn_date, stp_date,
-                                **kwargs):
-    t0 = dt.datetime.now()
-    pool = mp.Pool(processes=proc_num)
-    for sum_win in sum_wins:
-        transformer = CFactorsTransformerSum(sum_win, src_factor_id, **kwargs)
-        pool.apply_async(transformer.core, args=(run_mode, bgn_date, stp_date))
-    pool.close()
-    pool.join()
-    t1 = dt.datetime.now()
-    print(f"... {SetFontGreen('sum')} of {SetFontGreen(src_factor_id)} transformed")
-    print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
+class CFactorsTransformerLagDiff(CFactorsTransformer):
+
+    def _set_factor_id(self):
+        self.factor_id = f"{self.src_factor_id}LD{self.arg_win:03d}"
+        return 0
+
+    def _set_base_date(self, bgn_date: str, stp_date: str):
+        iter_dates = self.calendar.get_iter_list(bgn_date, stp_date, True)
+        self.base_date = self.calendar.get_next_date(iter_dates[0], -self.arg_win)
+        return 0
+
+    def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
+        new_df = pivot_df - pivot_df.shift(self.arg_win)
+        return new_df
+
+
+class CMpTransformer(object):
+    def __init__(self, proc_num: int,
+                 arg_wins: tuple[int], src_factor_id: str,
+                 run_mode, bgn_date, stp_date):
+        self.proc_num = proc_num
+        self.arg_wins = arg_wins
+        self.src_factor_id = src_factor_id
+        self.run_mode = run_mode
+        self.bgn_date = bgn_date
+        self.stp_date = stp_date
+
+    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
+        pass
+
+    def mp_cal_transform(self, **kwargs):
+        t0 = dt.datetime.now()
+        pool = mp.Pool(processes=self.proc_num)
+        for arg_win in self.arg_wins:
+            transformer = self.get_transformer(arg_win, self.src_factor_id, **kwargs)
+            pool.apply_async(transformer.core, args=(self.run_mode, self.bgn_date, self.stp_date))
+        pool.close()
+        pool.join()
+        t1 = dt.datetime.now()
+        print(f"... {SetFontGreen('sum')} of {SetFontGreen(self.src_factor_id)} transformed")
+        print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
+        return 0
+
+
+class CMpTransformerSum(CMpTransformer):
+    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
+        return CFactorsTransformerSum(arg_win, src_factor_id, **kwargs)
+
+
+class CMpTransformerAver(CMpTransformer):
+    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
+        return CFactorsTransformerAver(arg_win, src_factor_id, **kwargs)
+
+
+class CMpTransformerSharpe(CMpTransformer):
+    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
+        return CFactorsTransformerSharpe(arg_win, src_factor_id, **kwargs)
+
+
+class CMpTransformerBreakDiff(CMpTransformer):
+    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
+        return CFactorsTransformerBreakDiff(arg_win, src_factor_id, **kwargs)
+
+
+class CMpTransformerBreakRatio(CMpTransformer):
+    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
+        return CFactorsTransformerBreakRatio(arg_win, src_factor_id, **kwargs)
+
+
+class CMpTransformerLagDiff(CMpTransformer):
+    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
+        return CFactorsTransformerLagDiff(arg_win, src_factor_id, **kwargs)
+
+
+class CMpTransformerLagRatio(CMpTransformer):
+    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
+        return CFactorsTransformerLagRatio(arg_win, src_factor_id, **kwargs)
