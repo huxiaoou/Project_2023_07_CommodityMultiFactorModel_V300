@@ -41,7 +41,7 @@ from setup_model import (futures_by_instrument_dir, major_return_db_name, major_
                          ic_tests_dir, ic_tests_delinear_dir, factors_exposure_corr_dir,
                          simulations_opt_dir, evaluations_opt_dir, by_year_dir, simu_positions_and_trades_dir,
                          calendar_path, instrument_info_path)
-from config_factor import (concerned_instruments_universe, sector_classification, sectors,
+from config_factor import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification, sectors,
                            available_universe_options, test_windows, factors, neutral_method,
                            factors_pool_options, factors_return_lags,
                            windows_mtm, )
@@ -84,48 +84,12 @@ if __name__ == "__main__":
     'eval': evaluation,
     'by': evaluation by year,
     }""")
-    args_parser.add_argument("-m", "--mode", type=str, choices=("o", "a"),
-                             help="""run mode, available options = {'o', 'overwrite', 'a', 'append'}""")
-    args_parser.add_argument("-b", "--bgn", type=str,
-                             help="""begin date, may be different according to different switches, suggestion of different switch:
-    {
-        "returns/instrument_return": "20120101",
-        
-        "returns/available_universe": "20120301",
-        "returns/market_return": None,
-        "returns/test_return": "20120301",
-        "returns/test_return_neutral": "20120301",
-        
-        "factors/exposure": "20130101",
-        "factors/exposure_neutral": "20130101",
-        
-        "factors/exposure_norm_and_delinear": "20130201", # some factors with a large window (252) would start at about this time
-        
-        "factors/return": "20140101",
-        "signals/VANILLA": "20140101",
-        "signals/MA": "20140101",
-        "signals/allocation_raw": "20140101",
-        "signals/allocation_pure": "20140101",
-        
-        "signals/opt_raw_pure": "20140301",
-        "signals/opt_vanilla": "20140301",
-        "signals/opt_ma": "20140301",
-        
-        "ic_tests/": "20140101",
-        "ic_tests/neutral": "20140101",
-        "ic_tests/delinear": "20140101",
-        "ic_tests/fecor": "20140101",
-        
-        "simulation": "20140701",
-    }""")
-    args_parser.add_argument("-s", "--stp", type=str,
-                             help="""    stop date, not included, usually it would be the day after the last trade date, such as
-    "20230619" if last trade date is "20230616" """)
-    args_parser.add_argument("-p", "--process", type=int, default=5,
-                             help="""    number of process to be called when calculating, default = 5""")
+    args_parser.add_argument("-m", "--mode", type=str, choices=("o", "a"), help="""run mode, available options = {'o', 'a'}""")
+    args_parser.add_argument("-b", "--bgn", type=str, help="""begin date, must be provided if run_mode = 'a' else DO NOT provided.""")
+    args_parser.add_argument("-s", "--stp", type=str, help="""stop  date, NOT INCLUDED, must be provided if run_mode = 'o'.""")
+    args_parser.add_argument("-p", "--process", type=int, default=5, help="""number of process to be called when calculating, default = 5""")
     args_parser.add_argument("-f", "--factor", type=str, default="",
-                             help="""    optional, must be provided if switch = {'factors_exposure'},
-    use this to decide which factor, available options = {
+                             help="""optional, must be provided if switch = 'factors_exposure', use this to decide which factor, available options = {
     'basis', 'beta',
     'csp', 'csr',
     'ctp', 'ctr',
@@ -140,20 +104,23 @@ if __name__ == "__main__":
     'vol',
     }""")
     args_parser.add_argument("-t", "--type", type=str, choices=("v", "m", "a"),
-                             help="""    v = portfolios with signals derived from vanilla pure factors
+                             help="""
+    v = portfolios with signals derived from vanilla pure factors
     m = portfolios with signals derived from pure factors with timing, methods = moving average
     a = allocations, both raw and pure
     """)
-    args_parser.add_argument("-e", "--exeDate", type=str,
-                             help="""   format = [YYYYMMDD], used if switch = 'POS', to calculate the positions and trades""")
+    args_parser.add_argument("-e", "--exeDate", type=str, help="""format = [YYYYMMDD], used if switch = 'POS', to calculate the positions and trades""")
 
     args = args_parser.parse_args()
     switch = args.switch.upper()
-    run_mode = None if switch in ["IR", "MR",
-                                  "ICS", "ICNS", "ICDS", "ICC", "FECOR",
-                                  "SIMU", "EVAL", "BY", "POS"] else args.mode.upper()
-    bgn_date, stp_date = args.bgn, args.stp
-    if (stp_date is None) and (switch not in ["MR"]):
+    if switch in ["ICS", "ICNS", "ICDS", "ICC", "FECOR", "SIMU", "EVAL", "BY", "POS"]:
+        run_mode = None
+    elif switch in ["MR"]:
+        run_mode = "O"
+    else:
+        run_mode = args.mode.upper()
+    bgn_date, stp_date = (bgn_dates_in_overwrite_mod[switch] if run_mode in ["O"] else args.bgn), args.stp
+    if stp_date is None:
         stp_date = (dt.datetime.strptime(bgn_date, "%Y%m%d") + dt.timedelta(days=1)).strftime("%Y%m%d")
     proc_num = args.process
     factor = args.factor.upper() if switch in ["FE"] else None
@@ -184,9 +151,11 @@ if __name__ == "__main__":
         )
     elif switch in ["MR"]:  # "MARKET RETURN"
         cal_market_return(
-            instruments_return_dir=instruments_return_dir,
+            bgn_date=bgn_date, stp_date=stp_date,
             available_universe_dir=available_universe_dir,
+            instruments_return_dir=instruments_return_dir,
             database_structure=database_structure,
+            calendar=calendar,
         )
     elif switch in ["TR"]:  # "TEST RETURN"
         cal_test_return(
@@ -217,7 +186,7 @@ if __name__ == "__main__":
                 factors_exposure_dir=factors_exposure_dir,
                 database_structure=database_structure,
                 calendar=calendar)
-            factor_agent.core(run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
+            factor_agent.core(run_mode=run_mode, bgn_date=bgn_dates_in_overwrite_mod["FEB"] if run_mode in ["O"] else bgn_date, stp_date=stp_date)
             mp_cal_factor_transform_sum(proc_num=proc_num, sum_wins=windows_mtm, src_factor_id="MTM",
                                         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
                                         concerned_instruments_universe=concerned_instruments_universe,

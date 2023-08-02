@@ -3,6 +3,23 @@ created @ 2023-07-31
 0.
 """
 
+#
+bgn_dates_in_overwrite_mod = {
+    "IR": "20120101",  # instrument_return
+    "AU": "20120301",  # available_universe
+    "MR": "20120301",  # market_return
+    "TR": "20120301",  # test_return
+    "TRN": "20120301",  # test_return_neutral
+
+    "FEB": "20120101",  # factor_exposure basic
+    "FE": "20130101",  # factor_exposure
+    "FEN": "20130101",  # factor_exposure_neutral
+
+    "DLN": "20130201",  # factor_exposure_norm_and_delinear
+
+    "FR": "20140101",  # factor_return
+}
+
 # universe
 concerned_instruments_universe = [
     "AU.SHF",

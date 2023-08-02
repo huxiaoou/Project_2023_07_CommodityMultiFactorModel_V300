@@ -2,17 +2,15 @@ import os
 import numpy as np
 import datetime as dt
 import pandas as pd
-from skyrim.whiterun import SetFontGreen
+from skyrim.whiterun import CCalendar, SetFontGreen
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader
 
 
-def cal_market_return(instruments_return_dir: str,
+def cal_market_return(bgn_date: str, stp_date: str,
                       available_universe_dir: str,
-                      database_structure: dict[str, CLib1Tab1]):
-    # --- load
-    return_file = "instruments.return.csv.gz"
-    return_path = os.path.join(instruments_return_dir, return_file)
-    return_df = pd.read_csv(return_path, dtype={"trade_date": str}).set_index("trade_date")
+                      instruments_return_dir: str,
+                      database_structure: dict[str, CLib1Tab1],
+                      calendar: CCalendar):
 
     # --- initialize lib
     available_universe_lib_structure = database_structure["available_universe"]
@@ -21,7 +19,7 @@ def cal_market_return(instruments_return_dir: str,
 
     # --- loop
     market_index_return_data = []
-    for trade_date in return_df.index:
+    for trade_date in calendar.get_iter_list(bgn_date, stp_date, True):
         available_universe_df = available_universe_lib.read_by_date(
             t_value_columns=["instrument", "return", "amount"],
             t_trade_date=trade_date
