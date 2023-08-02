@@ -41,10 +41,10 @@ from setup_model import (futures_by_instrument_dir, major_return_db_name, major_
                          ic_tests_dir, ic_tests_delinear_dir, factors_exposure_corr_dir,
                          simulations_opt_dir, evaluations_opt_dir, by_year_dir, simu_positions_and_trades_dir,
                          calendar_path, instrument_info_path)
-from config_factor import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification, sectors,
-                           available_universe_options, test_windows, factors, neutral_method,
-                           factors_pool_options, factors_return_lags,
-                           windows_mtm, )
+from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification, sectors,
+                            available_universe_options, test_windows, factors, neutral_method,
+                            factors_pool_options, factors_return_lags,
+                            windows_mtm, )
 from config_portfolio import (available_factors, timing_factors,
                               pid, factors_return_lag, fast_n_slow_n_comb, raw_portfolio_options, pure_portfolio_options,
                               minimum_abs_weight, test_signals,

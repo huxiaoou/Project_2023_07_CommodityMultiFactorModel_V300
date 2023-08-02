@@ -248,13 +248,6 @@ factors_pool_options = {
 # neutral methods
 neutral_method = "WS"
 
-# secondary parameters
-RETURN_SCALE = 100
-YIYUAN = 1e8
-WANYUAN = 1e4
-days_per_year = 252
-price_type = "close"
-
 if __name__ == "__main__":
     print("\n".join(factors))
     print("Total number of factors = {}".format(len(factors)))  # 103

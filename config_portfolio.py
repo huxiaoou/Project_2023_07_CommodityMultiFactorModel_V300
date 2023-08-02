@@ -1,8 +1,8 @@
 import itertools as ittl
-from config_factor import test_windows
-from config_factor import sectors, sector_classification
-from config_factor import factors_pool_options, factors
-from config_factor import concerned_instruments_universe
+from config_project import test_windows
+from config_project import sectors, sector_classification
+from config_project import factors_pool_options, factors
+from config_project import concerned_instruments_universe
 
 # secondary parameters
 cost_rate = 5e-4
