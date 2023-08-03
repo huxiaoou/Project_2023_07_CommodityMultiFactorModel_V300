@@ -1,19 +1,8 @@
 import pandas as pd
-from factors.factors_base import CFactorsWithMajorReturn
-from skyrim.whiterun import CCalendar
-from skyrim.falkreath import CLib1Tab1
+from factors.factors_cls_base import CFactorsWithMajorReturn
 
 
 class CFactorMTM(CFactorsWithMajorReturn):
-    def __init__(self,
-                 futures_by_instrument_dir: str, major_return_db_name: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar, ):
-        super().__init__(futures_by_instrument_dir, major_return_db_name,
-                         concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
-
     def _set_factor_id(self):
         self.factor_id = "MTM"
         return 0

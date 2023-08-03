@@ -5,8 +5,10 @@ from returns.available_universe import cal_available_universe
 from returns.market_return import cal_market_return
 from returns.test_return import cal_test_return
 from returns.test_return_neutral import cal_test_return_neutral
-from factors.factors_MTM import CFactorMTM
-from factors.factors_transformer import CMpTransformerSum
+from factors.factors_cls_without_args import CFactorMTM
+from factors.factors_cls_transformer import (CMpTransformerSum, CMpTransformerSharpe, CFactorsTransformerAver,
+                                             CFactorsTransformerBreakRatio, CFactorsTransformerBreakDiff,
+                                             CFactorsTransformerLagRatio, CFactorsTransformerLagDiff)
 
 from factors.factors_neutral import cal_factors_neutral_mp
 from factors.factors_normalize_delinear import cal_factors_normalize_and_delinear_mp
@@ -190,6 +192,10 @@ if __name__ == "__main__":
             agent_mp = CMpTransformerSum(proc_num=proc_num, arg_wins=factors_settings["MTM"]["S"], src_factor_id="MTM", run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
             agent_mp.mp_cal_transform(concerned_instruments_universe=concerned_instruments_universe, factors_exposure_dir=factors_exposure_dir,
                                       database_structure=database_structure, calendar=calendar)
+            agent_mp = CMpTransformerSharpe(proc_num=proc_num, arg_wins=factors_settings["MTM"]["SP"], src_factor_id="MTM", run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
+            agent_mp.mp_cal_transform(concerned_instruments_universe=concerned_instruments_universe, factors_exposure_dir=factors_exposure_dir,
+                                      database_structure=database_structure, calendar=calendar)
+
 
     # elif switch in ["FEN"]:
     #     cal_factors_neutral_mp(

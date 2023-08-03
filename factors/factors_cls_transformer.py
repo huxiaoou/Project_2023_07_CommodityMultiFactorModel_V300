@@ -4,7 +4,7 @@ import pandas as pd
 import multiprocessing as mp
 from skyrim.whiterun import CCalendar, SetFontGreen
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader
-from factors.factors_base import CFactors
+from factors.factors_cls_base import CFactors
 
 
 # -----------------------------------------

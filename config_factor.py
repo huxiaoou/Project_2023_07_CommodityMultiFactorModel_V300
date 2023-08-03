@@ -9,6 +9,9 @@ wins_quad_term = (63, 126, 189, 252)
 wins_long_term = (63, 126, 252, 504)
 factors_settings = {
     "MTM": {"S": wins_aver, "SP": wins_aver},
+
+    "SIZE": {"A": wins_aver, "BR": wins_break, "LR": wins_lag},
+    "OI": {"BR": wins_break, "LR": wins_lag},
     "RS": {"BR": wins_break, "LR": wins_lag},
 
     "BASIS": {"A": wins_aver, "BD": wins_break, "LD": wins_lag},
@@ -22,10 +25,8 @@ factors_settings = {
 
     "SKEW": {"": wins_full_term, "LD": wins_lag},
     "VOL": {"": wins_full_term, "LD": wins_lag},
-    "CV": {"": wins_full_term, "LD": wins_lag},
     "RVOL": {"": wins_full_term, "LD": wins_lag},
-    "OI": {"": wins_full_term, "LD": wins_lag},
-    "SIZE": {"": wins_full_term, "LD": wins_lag},
+    "CV": {"": wins_full_term, "LD": wins_lag},
 
     "CTP": {"": wins_quad_term, "LD": wins_lag},
     "CVP": {"": wins_quad_term, "LD": wins_lag},
@@ -42,6 +43,8 @@ factors_settings = {
 }
 
 factors_mtm = ["MTM"] + list(itertools.chain(*[[f"MTM{k}{_:03d}" for _ in v] for k, v in factors_settings["MTM"].items()]))
+factors_size = ["SIZE"] + list(itertools.chain(*[[f"SIZE{k}{_:03d}" for _ in v] for k, v in factors_settings["SIZE"].items()]))
+factors_oi = ["OI"] + list(itertools.chain(*[[f"OI{k}{_:03d}" for _ in v] for k, v in factors_settings["OI"].items()]))
 factors_rs = ["RS"] + list(itertools.chain(*[[f"RS{k}{_:03d}" for _ in v] for k, v in factors_settings["RS"].items()]))
 factors_basis = ["BASIS"] + list(itertools.chain(*[[f"BASIS{k}{_:03d}" for _ in v] for k, v in factors_settings["BASIS"].items()]))
 factors_ts = ["TS"] + list(itertools.chain(*[[f"TS{k}{_:03d}" for _ in v] for k, v in factors_settings["TS"].items()]))
@@ -54,10 +57,8 @@ factors_netdoi = ["NETDOI"] + list(itertools.chain(*[[f"NETDOI{k}{_:03d}" for _ 
 
 factors_skew = [f"SKEW{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["SKEW"][""], factors_settings["SKEW"]["LD"])]
 factors_vol = [f"VOL{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["VOL"][""], factors_settings["VOL"]["LD"])]
-factors_cv = [f"CV{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CV"][""], factors_settings["CV"]["LD"])]
 factors_rvol = [f"RVOL{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["RVOL"][""], factors_settings["RVOL"]["LD"])]
-factors_oi = [f"OI{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["OI"][""], factors_settings["OI"]["LD"])]
-factors_size = [f"SIZE{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["SIZE"][""], factors_settings["SIZE"]["LD"])]
+factors_cv = [f"CV{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CV"][""], factors_settings["CV"]["LD"])]
 factors_ctp = [f"CTP{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CTP"][""], factors_settings["CTP"]["LD"])]
 factors_cvp = [f"CVP{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CVP"][""], factors_settings["CVP"]["LD"])]
 factors_csp = [f"CSP{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CSP"][""], factors_settings["CSP"]["LD"])]
@@ -70,9 +71,9 @@ factors_macd = [f"MACDF{f:03d}S{s:03d}A{int(100 * a):03d}" for f, s, a in iterto
 factors_kdj = [f"KDJ{n:03d}" for n in factors_settings["KDJ"]["N"]]
 factors_rsi = [f"RSI{n:03d}" for n in factors_settings["RSI"]["N"]]
 
-factors = factors_mtm + factors_rs + \
+factors = factors_mtm + factors_size + factors_oi + factors_rs + \
           factors_basis + factors_ts + factors_liquid + factors_sr + factors_hr + factors_netoi + factors_netoiw + factors_netdoi + \
-          factors_skew + factors_vol + factors_cv + factors_rvol + factors_oi + factors_size + \
+          factors_skew + factors_vol + factors_cv + factors_rvol + \
           factors_ctp + factors_cvp + factors_csp + factors_beta + \
           factors_val + factors_cbeta + factors_ibeta + \
           factors_macd + factors_kdj + factors_rsi
