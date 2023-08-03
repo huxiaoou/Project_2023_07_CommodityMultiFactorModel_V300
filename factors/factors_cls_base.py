@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from skyrim.whiterun import CCalendar, SetFontRed, SetFontGreen
+from skyrim.whiterun import CCalendarMonthly, SetFontRed, SetFontGreen
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriter
 
 
@@ -88,7 +88,7 @@ class CFactors(object):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar,
+                 calendar: CCalendarMonthly,
                  ):
         self.universe = concerned_instruments_universe
         self.factors_exposure_dir = factors_exposure_dir
@@ -156,9 +156,9 @@ class CFactorsWithMajorReturn(CFactors):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar, ):
+                 calendar: CCalendarMonthly, ):
         super().__init__(concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
-        self.m_manager_major_return = CDbByInstrument(futures_by_instrument_dir, major_return_db_name)
+        self.manager_major_return = CDbByInstrument(futures_by_instrument_dir, major_return_db_name)
 
 
 class CFactorsWithMajorReturnAndArgWin(CFactorsWithMajorReturn):
@@ -166,9 +166,10 @@ class CFactorsWithMajorReturnAndArgWin(CFactorsWithMajorReturn):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar, ):
+                 calendar: CCalendarMonthly, ):
         super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
         self.arg_win = arg_win
+        self._near_short_term = 21  # for CSP and VAL
 
     def _set_base_date(self, bgn_date: str, stp_date: str):
         iter_dates = self.calendar.get_iter_list(bgn_date, stp_date, True)
@@ -187,10 +188,10 @@ class CFactorsWithMajorReturnAndMarketReturn(CFactorsWithMajorReturnAndArgWin):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar, ):
+                 calendar: CCalendarMonthly, ):
         super().__init__(arg_win, futures_by_instrument_dir, major_return_db_name,
                          concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
-        self.m_manager_market_return = CReaderMarketReturn(market_return_dir, market_return_file)
+        self.manager_market_return = CReaderMarketReturn(market_return_dir, market_return_file)
 
 
 class CFactorsWithMajorReturnAndExchangeRate(CFactorsWithMajorReturnAndArgWin):
@@ -199,7 +200,7 @@ class CFactorsWithMajorReturnAndExchangeRate(CFactorsWithMajorReturnAndArgWin):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar, ):
+                 calendar: CCalendarMonthly, ):
         super().__init__(arg_win, futures_by_instrument_dir, major_return_db_name,
                          concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
         self.manager_exchange_rate = CReaderExchangeRate(forex_dir, cny_usd_file)
@@ -211,7 +212,7 @@ class CFactorsWithMajorReturnAndMacroEconomic(CFactorsWithMajorReturnAndArgWin):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar, ):
+                 calendar: CCalendarMonthly, ):
         super().__init__(arg_win, futures_by_instrument_dir, major_return_db_name,
                          concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
         self.manager_macro_economic = CReaderMacroEconomic(macro_economic_dir, cpi_m2_file)
@@ -223,7 +224,7 @@ class CFactorsWithBasis(CFactors):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar, ):
+                 calendar: CCalendarMonthly, ):
         super().__init__(concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
         self.manager_basis = CFundByInstrument(self.universe, fundamental_by_instru_dir, "BASIS")
 
@@ -234,7 +235,7 @@ class CFactorsWithStock(CFactors):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar, ):
+                 calendar: CCalendarMonthly, ):
         super().__init__(concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
         self.manager_stock = CFundByInstrument(self.universe, fundamental_by_instru_dir, "STOCK")
 
@@ -246,9 +247,9 @@ class CFactorsWithMajorMinorAndMdc(CFactors):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar, ):
+                 calendar: CCalendarMonthly, ):
         super().__init__(concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
-        self.manager_stock = CDbByInstrument(futures_by_instrument_dir, major_minor_db_name)
+        self.manager_major_minor = CDbByInstrument(futures_by_instrument_dir, major_minor_db_name)
         self.manager_md = CMdByInstrument(self.universe, md_by_instru_dir, "MDC")
 
 
@@ -258,7 +259,7 @@ class CFactorsWithInstruVolume(CFactors):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar, ):
+                 calendar: CCalendarMonthly, ):
         super().__init__(concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
         self.manager_instru_volume = CDbByInstrument(futures_by_instrument_dir, instrument_volume_db_name)
 
@@ -269,7 +270,7 @@ class CFactorsWithInstruVolumeAndInstruMember(CFactors):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar, ):
+                 calendar: CCalendarMonthly, ):
         super().__init__(concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
         self.manager_instru_volume = CDbByInstrument(futures_by_instrument_dir, instrument_volume_db_name)
         self.manager_instru_member = CDbByInstrument(futures_by_instrument_dir, instrument_member_db_name)

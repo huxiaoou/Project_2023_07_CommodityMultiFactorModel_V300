@@ -2,7 +2,7 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
-from skyrim.whiterun import CCalendar, SetFontGreen
+from skyrim.whiterun import CCalendarMonthly, SetFontGreen
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader
 from factors.factors_cls_base import CFactors
 
@@ -16,7 +16,7 @@ class CFactorsTransformer(CFactors):
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendar,
+                 calendar: CCalendarMonthly,
                  ):
         super().__init__(concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
         self.src_factor_id = src_factor_id

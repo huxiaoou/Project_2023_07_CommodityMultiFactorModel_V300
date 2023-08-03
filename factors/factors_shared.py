@@ -10,26 +10,6 @@ from skyrim.falkreath import CLib1Tab1, CManagerLibReader
 # --- Part I: factor exposure calculation ---
 
 
-def cal_rolling_corr(t_major_return_df: pd.DataFrame, t_x: str, t_y: str, t_rolling_window: int, t_corr_lbl: str):
-    t_major_return_df["xy"] = (t_major_return_df[t_x] * t_major_return_df[t_y]).rolling(window=t_rolling_window).mean()
-    t_major_return_df["xx"] = (t_major_return_df[t_x] * t_major_return_df[t_x]).rolling(window=t_rolling_window).mean()
-    t_major_return_df["yy"] = (t_major_return_df[t_y] * t_major_return_df[t_y]).rolling(window=t_rolling_window).mean()
-    t_major_return_df["x"] = t_major_return_df[t_x].rolling(window=t_rolling_window).mean()
-    t_major_return_df["y"] = t_major_return_df[t_y].rolling(window=t_rolling_window).mean()
-
-    t_major_return_df["cov_xy"] = t_major_return_df["xy"] - t_major_return_df["x"] * t_major_return_df["y"]
-    t_major_return_df["cov_xx"] = t_major_return_df["xx"] - t_major_return_df["x"] * t_major_return_df["x"]
-    t_major_return_df["cov_yy"] = t_major_return_df["yy"] - t_major_return_df["y"] * t_major_return_df["y"]
-
-    t_major_return_df.loc[np.abs(t_major_return_df["cov_xx"]) <= 1e-8, "cov_xx"] = 0
-    t_major_return_df.loc[np.abs(t_major_return_df["cov_yy"]) <= 1e-8, "cov_yy"] = 0
-
-    t_major_return_df["sqrt_cov_xx_yy"] = np.sqrt(t_major_return_df["cov_xx"] * t_major_return_df["cov_yy"]).fillna(0)
-    t_major_return_df[t_corr_lbl] = t_major_return_df[["cov_xy", "sqrt_cov_xx_yy"]].apply(
-        lambda z: 0 if z["sqrt_cov_xx_yy"] == 0 else -z["cov_xy"] / z["sqrt_cov_xx_yy"], axis=1)
-    return 0
-
-
 def transform_dist(t_exposure_srs: pd.Series):
     """
 
