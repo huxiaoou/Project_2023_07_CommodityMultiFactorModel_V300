@@ -1,5 +1,8 @@
+import datetime as dt
+import multiprocessing as mp
 import numpy as np
 import pandas as pd
+from skyrim.whiterun import SetFontGreen, SetFontRed
 from factors.factors_cls_base import (CFactorsWithMajorReturnAndArgWin, CFactorsWithMajorReturnAndMarketReturn,
                                       CFactorsWithMajorReturnAndExchangeRate, CFactorsWithMajorReturnAndMacroEconomic)
 
@@ -35,7 +38,7 @@ def cal_rolling_beta(df: pd.DataFrame, x: str, y: str, rolling_window: int) -> p
     return s
 
 
-class CFactorSKEW(CFactorsWithMajorReturnAndArgWin):
+class CFactorsSKEW(CFactorsWithMajorReturnAndArgWin):
     def _set_factor_id(self):
         self.factor_id = f"SKEW{self.arg_win:03d}"
         return 0
@@ -211,7 +214,7 @@ class CFactorsVAL(CFactorsWithMajorReturnAndArgWin):
         return self._truncate(s, bgn_date)
 
 
-class CFactorBeta(CFactorsWithMajorReturnAndMarketReturn):
+class CFactorsBETA(CFactorsWithMajorReturnAndMarketReturn):
     def _set_factor_id(self):
         self.factor_id = f"BETA{self.arg_win:03d}"
         return 0
@@ -232,7 +235,7 @@ class CFactorBeta(CFactorsWithMajorReturnAndMarketReturn):
         return self._truncate(s, bgn_date)
 
 
-class CFactorCBeta(CFactorsWithMajorReturnAndExchangeRate):
+class CFactorsCBETA(CFactorsWithMajorReturnAndExchangeRate):
     def _set_factor_id(self):
         self.factor_id = f"CBETA{self.arg_win:03d}"
         return 0
@@ -253,7 +256,7 @@ class CFactorCBeta(CFactorsWithMajorReturnAndExchangeRate):
         return self._truncate(s, bgn_date)
 
 
-class CFactorIBeta(CFactorsWithMajorReturnAndMacroEconomic):
+class CFactorsIBETA(CFactorsWithMajorReturnAndMacroEconomic):
     def _set_factor_id(self):
         self.factor_id = f"IBETA{self.arg_win:03d}"
         return 0
@@ -287,3 +290,50 @@ class CFactorIBeta(CFactorsWithMajorReturnAndMacroEconomic):
         df = df.merge(right=pd.DataFrame({"cbeta": ms_shift}), left_on="trade_month", right_index=True, how="left")
         s = df["cbeta"]
         return self._truncate(s, bgn_date)
+
+
+class CMpFactorWithArgWin(object):
+    def __init__(self, proc_num: int, factor_type: str, arg_wins: tuple[int], run_mode, bgn_date, stp_date):
+        self.proc_num = proc_num
+        self.factor_type = factor_type.upper()
+        self.arg_wins = arg_wins
+        self.run_mode = run_mode
+        self.bgn_date = bgn_date
+        self.stp_date = stp_date
+
+    def mp_cal_factor(self, **kwargs):
+        t0 = dt.datetime.now()
+        pool = mp.Pool(processes=self.proc_num)
+        for arg_win in self.arg_wins:
+            if self.factor_type == "SKEW":
+                transformer = CFactorsSKEW(arg_win, **kwargs)
+            elif self.factor_type == "VOL":
+                transformer = CFactorsVOL(arg_win, **kwargs)
+            elif self.factor_type == "RVOL":
+                transformer = CFactorsRVOL(arg_win, **kwargs)
+            elif self.factor_type == "CV":
+                transformer = CFactorsCV(arg_win, **kwargs)
+            elif self.factor_type == "CTP":
+                transformer = CFactorsCTP(arg_win, **kwargs)
+            elif self.factor_type == "CVP":
+                transformer = CFactorsCVP(arg_win, **kwargs)
+            elif self.factor_type == "CSP":
+                transformer = CFactorsCSP(arg_win, **kwargs)
+            elif self.factor_type == "BETA":
+                transformer = CFactorsBETA(arg_win, **kwargs)
+            elif self.factor_type == "VAL":
+                transformer = CFactorsVAL(arg_win, **kwargs)
+            elif self.factor_type == "CBETA":
+                transformer = CFactorsCBETA(arg_win, **kwargs)
+            elif self.factor_type == "IBETA":
+                transformer = CFactorsIBETA(arg_win, **kwargs)
+            else:
+                transformer = None
+            if transformer is not None:
+                pool.apply_async(transformer.core, args=(self.run_mode, self.bgn_date, self.stp_date))
+        pool.close()
+        pool.join()
+        t1 = dt.datetime.now()
+        print(f"... {SetFontGreen('sum')} of {SetFontGreen(self.factor_type)} transformed")
+        print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
+        return 0

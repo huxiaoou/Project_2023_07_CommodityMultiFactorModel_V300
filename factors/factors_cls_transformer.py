@@ -12,7 +12,7 @@ from factors.factors_cls_base import CFactors
 # -----------------------------------------
 
 class CFactorsTransformer(CFactors):
-    def __init__(self, arg_win: int, src_factor_id: str,
+    def __init__(self, src_factor_id: str, arg_win: int,
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
@@ -152,62 +152,41 @@ class CFactorsTransformerLagDiff(CFactorsTransformer):
 
 class CMpTransformer(object):
     def __init__(self, proc_num: int,
-                 arg_wins: tuple[int], src_factor_id: str,
+                 src_factor_id: str, transform_type: str, arg_wins: tuple[int],
                  run_mode, bgn_date, stp_date):
         self.proc_num = proc_num
         self.arg_wins = arg_wins
         self.src_factor_id = src_factor_id
+        self.transform_type = transform_type.upper()
         self.run_mode = run_mode
         self.bgn_date = bgn_date
         self.stp_date = stp_date
-
-    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
-        pass
 
     def mp_cal_transform(self, **kwargs):
         t0 = dt.datetime.now()
         pool = mp.Pool(processes=self.proc_num)
         for arg_win in self.arg_wins:
-            transformer = self.get_transformer(arg_win, self.src_factor_id, **kwargs)
-            pool.apply_async(transformer.core, args=(self.run_mode, self.bgn_date, self.stp_date))
+            if self.transform_type == "SUM":
+                transformer = CFactorsTransformerSum(self.src_factor_id, arg_win, **kwargs)
+            elif self.transform_type == "AVER":
+                transformer = CFactorsTransformerAver(self.src_factor_id, arg_win, **kwargs)
+            elif self.transform_type == "SHARPE":
+                transformer = CFactorsTransformerSharpe(self.src_factor_id, arg_win, **kwargs)
+            elif self.transform_type == "BD":
+                transformer = CFactorsTransformerBreakDiff(self.src_factor_id, arg_win, **kwargs)
+            elif self.transform_type == "BR":
+                transformer = CFactorsTransformerBreakRatio(self.src_factor_id, arg_win, **kwargs)
+            elif self.transform_type == "LD":
+                transformer = CFactorsTransformerLagDiff(self.src_factor_id, arg_win, **kwargs)
+            elif self.transform_type == "LR":
+                transformer = CFactorsTransformerLagRatio(self.src_factor_id, arg_win, **kwargs)
+            else:
+                transformer = None
+            if transformer is not None:
+                pool.apply_async(transformer.core, args=(self.run_mode, self.bgn_date, self.stp_date))
         pool.close()
         pool.join()
         t1 = dt.datetime.now()
         print(f"... {SetFontGreen('sum')} of {SetFontGreen(self.src_factor_id)} transformed")
         print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
         return 0
-
-
-class CMpTransformerSum(CMpTransformer):
-    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
-        return CFactorsTransformerSum(arg_win, src_factor_id, **kwargs)
-
-
-class CMpTransformerAver(CMpTransformer):
-    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
-        return CFactorsTransformerAver(arg_win, src_factor_id, **kwargs)
-
-
-class CMpTransformerSharpe(CMpTransformer):
-    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
-        return CFactorsTransformerSharpe(arg_win, src_factor_id, **kwargs)
-
-
-class CMpTransformerBreakDiff(CMpTransformer):
-    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
-        return CFactorsTransformerBreakDiff(arg_win, src_factor_id, **kwargs)
-
-
-class CMpTransformerBreakRatio(CMpTransformer):
-    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
-        return CFactorsTransformerBreakRatio(arg_win, src_factor_id, **kwargs)
-
-
-class CMpTransformerLagDiff(CMpTransformer):
-    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
-        return CFactorsTransformerLagDiff(arg_win, src_factor_id, **kwargs)
-
-
-class CMpTransformerLagRatio(CMpTransformer):
-    def get_transformer(self, arg_win, src_factor_id, **kwargs) -> CFactorsTransformer:
-        return CFactorsTransformerLagRatio(arg_win, src_factor_id, **kwargs)
