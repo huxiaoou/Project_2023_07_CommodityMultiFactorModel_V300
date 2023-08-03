@@ -14,8 +14,8 @@ class CReaderMarketReturn(object):
 
 
 class CReaderExchangeRate(object):
-    def __init__(self, forex_dir: str, cny_usd_file: str):
-        src_path = os.path.join(forex_dir, cny_usd_file)
+    def __init__(self, forex_dir: str, exchange_rate_file: str):
+        src_path = os.path.join(forex_dir, exchange_rate_file)
         self.df = pd.read_excel(src_path)
         self.df["trade_date"] = self.df["Date"].strftime("%Y%m%d")
         self.df.drop(labels=["Date"], axis=1, inplace=True)
@@ -26,7 +26,7 @@ class CReaderMacroEconomic(object):
     def __init__(self, macro_economic_dir: str, cpi_m2_file: str):
         src_path = os.path.join(macro_economic_dir, cpi_m2_file)
         self.df = pd.read_excel(src_path)
-        self.df["trade_month"] = self.df["trade_month"].replace("-", "")
+        self.df["trade_month"] = self.df["trade_month"].map(lambda _: _.strftime("%Y%m"))
         self.df.set_index("trade_month", inplace=True)
 
 
@@ -196,14 +196,14 @@ class CFactorsWithMajorReturnAndMarketReturn(CFactorsWithMajorReturnAndArgWin):
 
 class CFactorsWithMajorReturnAndExchangeRate(CFactorsWithMajorReturnAndArgWin):
     def __init__(self, arg_win: int, futures_by_instrument_dir: str, major_return_db_name: str,
-                 forex_dir: str, cny_usd_file: str,
+                 forex_dir: str, exchange_rate_file: str,
                  concerned_instruments_universe: list[str],
                  factors_exposure_dir: str,
                  database_structure: dict[str, CLib1Tab1],
                  calendar: CCalendarMonthly, ):
         super().__init__(arg_win, futures_by_instrument_dir, major_return_db_name,
                          concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
-        self.manager_exchange_rate = CReaderExchangeRate(forex_dir, cny_usd_file)
+        self.manager_exchange_rate = CReaderExchangeRate(forex_dir, exchange_rate_file)
 
 
 class CFactorsWithMajorReturnAndMacroEconomic(CFactorsWithMajorReturnAndArgWin):

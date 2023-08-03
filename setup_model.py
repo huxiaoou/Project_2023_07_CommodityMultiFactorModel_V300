@@ -52,6 +52,14 @@ major_return_db_name = global_config["futures"]["major_return_db"]
 instrument_volume_db_name = global_config["futures"]["instrument_volume_db"]
 instrument_member_db_name = global_config["futures"]["instrument_member_db"]
 
+# marco economic
+macro_economic_dir = os.path.join(project_data_root_dir, global_config["macro"]["macro_dir"])
+cpi_m2_file = global_config["macro"]["cpi_m2_file"]
+
+# forex
+forex_dir = os.path.join(project_data_root_dir, global_config["forex"]["forex_dir"])
+exchange_rate_file = global_config["forex"]["exchange_rate_file"]
+
 # --- projects data
 research_data_root_dir = "/ProjectsData"
 research_project_name = os.getcwd().split("\\")[-1]

@@ -6,9 +6,8 @@ from returns.market_return import cal_market_return
 from returns.test_return import cal_test_return
 from returns.test_return_neutral import cal_test_return_neutral
 from factors.factors_cls_without_args import CFactorMTM
-from factors.factors_cls_transformer import (CMpTransformerSum, CMpTransformerSharpe, CFactorsTransformerAver,
-                                             CFactorsTransformerBreakRatio, CFactorsTransformerBreakDiff,
-                                             CFactorsTransformerLagRatio, CFactorsTransformerLagDiff)
+from factors.factors_cls_with_args import CFactorIBeta
+from factors.factors_cls_transformer import (CMpTransformerSum, CMpTransformerSharpe, CMpTransformerLagDiff)
 
 from factors.factors_neutral import cal_factors_neutral_mp
 from factors.factors_normalize_delinear import cal_factors_normalize_and_delinear_mp
@@ -31,7 +30,8 @@ from simulations.evaluation import cal_evaluation_signals_mp
 from simulations.evaluation_by_year import evaluate_signal_by_year, plot_signals_nav_by_year
 from simulations.evaluation_positions_and_trades import cal_positions_and_trades_mp
 
-from setup_model import (futures_by_instrument_dir, major_return_db_name, major_minor_db_name,
+from setup_model import (macro_economic_dir, cpi_m2_file,
+                         futures_by_instrument_dir, major_return_db_name, major_minor_db_name,
                          instrument_volume_db_name, instrument_member_db_name,
                          md_by_instru_dir, fundamental_by_instru_dir,
                          instruments_return_dir, available_universe_dir,
@@ -53,7 +53,7 @@ from config_portfolio import (available_factors, timing_factors,
                               selected_sectors, selected_factors,
                               cost_rate, cost_reservation, init_premium, risk_free_rate)
 from struct_lib_portfolio import database_structure
-from skyrim.whiterun import CCalendar, CInstrumentInfoTable
+from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
 if __name__ == "__main__":
     args_parser = argparse.ArgumentParser(description="Entry point of this project", formatter_class=argparse.RawTextHelpFormatter)
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     exe_date = args.exeDate.upper() if switch in ["POS"] else None
 
     # some shared data
-    calendar = CCalendar(calendar_path)
+    calendar = CCalendarMonthly(calendar_path)
     instru_into_tab = CInstrumentInfoTable(instrument_info_path, t_index_label="windCode", t_type="CSV")
 
     if switch in ["IR"]:  # "INSTRUMENT RETURN":
@@ -196,6 +196,23 @@ if __name__ == "__main__":
             agent_mp.mp_cal_transform(concerned_instruments_universe=concerned_instruments_universe, factors_exposure_dir=factors_exposure_dir,
                                       database_structure=database_structure, calendar=calendar)
 
+        if factor == "IBETA":
+            for arg_win in factors_settings["IBETA"][""]:
+                factor_id = f"IBETA{arg_win:03d}"
+                agent_factor = CFactorIBeta(
+                    arg_win=arg_win,
+                    futures_by_instrument_dir=futures_by_instrument_dir,
+                    major_return_db_name=major_return_db_name,
+                    macro_economic_dir=macro_economic_dir,
+                    cpi_m2_file=cpi_m2_file,
+                    concerned_instruments_universe=concerned_instruments_universe,
+                    factors_exposure_dir=factors_exposure_dir,
+                    database_structure=database_structure,
+                    calendar=calendar)
+                agent_factor.core(run_mode=run_mode, bgn_date=bgn_dates_in_overwrite_mod["FEB"] if run_mode in ["O"] else bgn_date, stp_date=stp_date)
+                # agent_mp = CMpTransformerLagDiff(proc_num=proc_num, arg_wins=factors_settings["IBETA"]["LD"], src_factor_id=factor_id, run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
+                # agent_mp.mp_cal_transform(concerned_instruments_universe=concerned_instruments_universe, factors_exposure_dir=factors_exposure_dir,
+                #                           database_structure=database_structure, calendar=calendar)
 
     # elif switch in ["FEN"]:
     #     cal_factors_neutral_mp(

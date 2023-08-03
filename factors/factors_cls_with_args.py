@@ -195,7 +195,6 @@ class CFactorsVAL(CFactorsWithMajorReturnAndArgWin):
         return 0
 
     def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
-        __now_aver_days = 21
         self._set_base_date(bgn_date, stp_date)
         db_reader = self.manager_major_return.get_db_reader()
         df = db_reader.read_by_conditions(t_conditions=[
@@ -218,7 +217,6 @@ class CFactorBeta(CFactorsWithMajorReturnAndMarketReturn):
         return 0
 
     def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
-        __now_aver_days = 21
         self._set_base_date(bgn_date, stp_date)
         db_reader = self.manager_major_return.get_db_reader()
         df = db_reader.read_by_conditions(t_conditions=[
@@ -240,7 +238,6 @@ class CFactorCBeta(CFactorsWithMajorReturnAndExchangeRate):
         return 0
 
     def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
-        __now_aver_days = 21
         self._set_base_date(bgn_date, stp_date)
         db_reader = self.manager_major_return.get_db_reader()
         df = db_reader.read_by_conditions(t_conditions=[
@@ -262,8 +259,14 @@ class CFactorIBeta(CFactorsWithMajorReturnAndMacroEconomic):
         return 0
 
     def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
-        __now_aver_days = 21
-        self._set_base_date(bgn_date, stp_date)
+        iter_dates = self.calendar.get_iter_list(bgn_date, stp_date, True)
+        bgn_last_month = self.calendar.get_latest_month_from_trade_date(iter_dates[0])
+        end_last_month = self.calendar.get_latest_month_from_trade_date(iter_dates[-1])
+
+        arg_win_month = int(self.arg_win / 21)
+        base_month = self.calendar.get_next_month(bgn_last_month, -arg_win_month)
+        self.base_date = base_month + "01"
+
         db_reader = self.manager_major_return.get_db_reader()
         df = db_reader.read_by_conditions(t_conditions=[
             ("trade_date", ">=", self.base_date),
@@ -273,6 +276,14 @@ class CFactorIBeta(CFactorsWithMajorReturnAndMacroEconomic):
         db_reader.close()
         df.set_index("trade_date", inplace=True)
 
-        df["cpi"] = self.manager_macro_economic.df["cpi_rate"]
-        s = cal_rolling_beta(df, x="exchange", y="major_return", rolling_window=self.arg_win)
+        df["trade_month"] = df.index.map(lambda _: _[0:6])
+        month_ret_df = df[["trade_month", "major_return"]].groupby(by="trade_month").apply(lambda z: np.prod(1 + z) - 1)
+        filter_month = (month_ret_df.index >= base_month) & (month_ret_df.index < end_last_month)
+        selected_month_ret_df: pd.DataFrame = month_ret_df.loc[filter_month].copy()
+        selected_month_ret_df["cpi"] = self.manager_macro_economic.df["cpi_rate"]
+        ms = cal_rolling_beta(selected_month_ret_df, x="cpi", y="major_return", rolling_window=arg_win_month)
+        ms = pd.concat([ms, pd.Series({end_last_month: np.nan, iter_dates[-1][0:6]: np.nan})])
+        ms_shift = ms.shift(2)
+        df = df.merge(right=pd.DataFrame({"cbeta": ms_shift}), left_on="trade_month", right_index=True, how="left")
+        s = df["cbeta"]
         return self._truncate(s, bgn_date)

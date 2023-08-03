@@ -6,7 +6,7 @@ wins_break = (10, 21, 63, 126, 189, 252)
 wins_lag = (21, 63, 252)
 wins_full_term = (10, 21, 63, 126, 189, 252)
 wins_quad_term = (63, 126, 189, 252)
-wins_long_term = (63, 126, 252, 504)
+wins_long_term = (126, 252, 378, 504)
 factors_settings = {
     "MTM": {"S": wins_aver, "SP": wins_aver},
 
@@ -55,17 +55,17 @@ factors_netoi = ["NETOI"] + list(itertools.chain(*[[f"NETOI{k}{_:03d}" for _ in 
 factors_netoiw = ["NETOIW"] + list(itertools.chain(*[[f"NETOIW{k}{_:03d}" for _ in v] for k, v in factors_settings["NETOIW"].items()]))
 factors_netdoi = ["NETDOI"] + list(itertools.chain(*[[f"NETDOI{k}{_:03d}" for _ in v] for k, v in factors_settings["NETDOI"].items()]))
 
-factors_skew = [f"SKEW{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["SKEW"][""], factors_settings["SKEW"]["LD"])]
-factors_vol = [f"VOL{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["VOL"][""], factors_settings["VOL"]["LD"])]
-factors_rvol = [f"RVOL{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["RVOL"][""], factors_settings["RVOL"]["LD"])]
-factors_cv = [f"CV{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CV"][""], factors_settings["CV"]["LD"])]
-factors_ctp = [f"CTP{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CTP"][""], factors_settings["CTP"]["LD"])]
-factors_cvp = [f"CVP{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CVP"][""], factors_settings["CVP"]["LD"])]
-factors_csp = [f"CSP{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CSP"][""], factors_settings["CSP"]["LD"])]
-factors_beta = [f"BETA{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["BETA"][""], factors_settings["BETA"]["LD"])]
-factors_val = [f"VAL{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["VAL"][""], factors_settings["VAL"]["LD"])]
-factors_cbeta = [f"CBETA{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CBETA"][""], factors_settings["CBETA"]["LD"])]
-factors_ibeta = [f"IBETA{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["IBETA"][""], factors_settings["IBETA"]["LD"])]
+factors_skew = [f"SKEW{w:03d}" for w in factors_settings["SKEW"][""]] + [f"SKEW{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["SKEW"][""], factors_settings["SKEW"]["LD"])]
+factors_vol = [f"VOL{w:03d}" for w in factors_settings["VOL"][""]] + [f"VOL{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["VOL"][""], factors_settings["VOL"]["LD"])]
+factors_rvol = [f"RVOL{w:03d}" for w in factors_settings["RVOL"][""]] + [f"RVOL{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["RVOL"][""], factors_settings["RVOL"]["LD"])]
+factors_cv = [f"CV{w:03d}" for w in factors_settings["CV"][""]] + [f"CV{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CV"][""], factors_settings["CV"]["LD"])]
+factors_ctp = [f"CTP{w:03d}" for w in factors_settings["CTP"][""]] + [f"CTP{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CTP"][""], factors_settings["CTP"]["LD"])]
+factors_cvp = [f"CVP{w:03d}" for w in factors_settings["CVP"][""]] + [f"CVP{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CVP"][""], factors_settings["CVP"]["LD"])]
+factors_csp = [f"CSP{w:03d}" for w in factors_settings["CSP"][""]] + [f"CSP{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CSP"][""], factors_settings["CSP"]["LD"])]
+factors_beta = [f"BETA{w:03d}" for w in factors_settings["BETA"][""]] + [f"BETA{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["BETA"][""], factors_settings["BETA"]["LD"])]
+factors_val = [f"VAL{w:03d}" for w in factors_settings["VAL"][""]] + [f"VAL{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["VAL"][""], factors_settings["VAL"]["LD"])]
+factors_cbeta = [f"CBETA{w:03d}" for w in factors_settings["CBETA"][""]] + [f"CBETA{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["CBETA"][""], factors_settings["CBETA"]["LD"])]
+factors_ibeta = [f"IBETA{w:03d}" for w in factors_settings["IBETA"][""]] + [f"IBETA{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["IBETA"][""], factors_settings["IBETA"]["LD"])]
 
 factors_macd = [f"MACDF{f:03d}S{s:03d}A{int(100 * a):03d}" for f, s, a in itertools.product(factors_settings["MACD"]["F"], factors_settings["MACD"]["S"], factors_settings["MACD"]["ALPHA"])]
 factors_kdj = [f"KDJ{n:03d}" for n in factors_settings["KDJ"]["N"]]
