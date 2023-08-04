@@ -177,10 +177,125 @@ if __name__ == "__main__":
         if factor == "MTM":
             agent_factor = CFactorMTM(futures_by_instrument_dir, major_return_db_name, **shared_keywords)
             agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
-
-            agent_transformer = CMpTransformer(proc_num, [factor], "SUM", factors_settings["MTM"]["S"], run_mode, bgn_date, stp_date, factor)
+            agent_transformer = CMpTransformer(proc_num, [factor], "SUM", factors_settings[factor]["S"], 1, run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
-            agent_transformer = CMpTransformer(proc_num, [factor], "SHARPE", factors_settings["MTM"]["SP"], run_mode, bgn_date, stp_date, factor)
+            agent_transformer = CMpTransformer(proc_num, [factor], "SHARPE", factors_settings[factor]["SP"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "SIZE":
+            agent_factor = CFactorsSIZE(futures_by_instrument_dir, instrument_volume_db_name, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "AVER", factors_settings[factor]["A"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BR", factors_settings[factor]["BR"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LR", factors_settings[factor]["LR"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "OI":
+            agent_factor = CFactorsOI(futures_by_instrument_dir, instrument_volume_db_name, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BR", factors_settings[factor]["BR"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LR", factors_settings[factor]["LR"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "RS":
+            agent_factor = CFactorsRS(fundamental_by_instru_dir, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BR", factors_settings[factor]["BR"], -1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LR", factors_settings[factor]["LR"], -1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "BASIS":
+            agent_factor = CFactorsBASIS(fundamental_by_instru_dir, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "AVER", factors_settings[factor]["A"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BD", factors_settings[factor]["BD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "TS":
+            agent_factor = CFactorsTS(futures_by_instrument_dir, major_minor_db_name, md_by_instru_dir, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "AVER", factors_settings[factor]["A"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BD", factors_settings[factor]["BD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "LIQUID":
+            agent_factor = CFactorsLIQUID(futures_by_instrument_dir, major_return_db_name, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "AVER", factors_settings[factor]["A"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BD", factors_settings[factor]["BD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "SR":
+            agent_factor = CFactorsSR(futures_by_instrument_dir, instrument_volume_db_name, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "AVER", factors_settings[factor]["A"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BD", factors_settings[factor]["BD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "HR":
+            agent_factor = CFactorsHR(futures_by_instrument_dir, instrument_volume_db_name, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "AVER", factors_settings[factor]["A"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BD", factors_settings[factor]["BD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "NETOI":
+            agent_factor = CFactorsNETOI(futures_by_instrument_dir, instrument_volume_db_name, instrument_member_db_name, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "AVER", factors_settings[factor]["A"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BD", factors_settings[factor]["BD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "NETOIW":
+            agent_factor = CFactorsNETOIW(futures_by_instrument_dir, instrument_volume_db_name, instrument_member_db_name, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "AVER", factors_settings[factor]["A"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BD", factors_settings[factor]["BD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "NETDOI":
+            agent_factor = CFactorsNETDOI(futures_by_instrument_dir, instrument_volume_db_name, instrument_member_db_name, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "AVER", factors_settings[factor]["A"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BD", factors_settings[factor]["BD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "NETDOIW":
+            agent_factor = CFactorsNETDOIW(futures_by_instrument_dir, instrument_volume_db_name, instrument_member_db_name, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+            agent_transformer = CMpTransformer(proc_num, [factor], "AVER", factors_settings[factor]["A"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "BD", factors_settings[factor]["BD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
 
         if factor == "IBETA":
@@ -189,7 +304,7 @@ if __name__ == "__main__":
                                        macro_economic_dir=macro_economic_dir, cpi_m2_file=cpi_m2_file, **shared_keywords)
 
             src_factor_ids = [f"{factor}{_:03d}" for _ in factors_settings[factor][""]]
-            agent_transformer = CMpTransformer(proc_num, src_factor_ids, "LD", factors_settings[factor]["LD"], run_mode, bgn_date, stp_date, factor)
+            agent_transformer = CMpTransformer(proc_num, src_factor_ids, "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
 
     # elif switch in ["FEN"]:

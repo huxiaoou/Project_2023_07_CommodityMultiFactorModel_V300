@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 from skyrim.whiterun import CCalendarMonthly, SetFontRed, SetFontGreen
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriter
@@ -58,7 +59,7 @@ class CCSVByInstrument(object):
         }.get(src_data_type.upper(), None)
 
         self.manger_dfs = {}
-        if not csv_file_format:
+        if csv_file_format:
             for instrument in instruments:
                 src_file = csv_file_format.format(instrument)
                 src_path = os.path.join(self.csvs_save_dir, src_file)
@@ -280,15 +281,18 @@ class CFactorsWithInstruVolumeAndInstruMember(CFactors):
         self.manager_instru_volume = CDbByInstrument(futures_by_instrument_dir, instrument_volume_db_name)
         self.manager_instru_member = CDbByInstrument(futures_by_instrument_dir, instrument_member_db_name)
 
-    def _get_net_srs(self, instrument: str, bgn_date: str, stp_date: str, x: str, y: str):
+    def _get_net_srs(self, instrument: str, bgn_date: str, stp_date: str, x: str, y: str) -> pd.Series:
         member_db_reader = self.manager_instru_member.get_db_reader()
         member_df = member_db_reader.read_by_conditions(t_conditions=[
             ("trade_date", ">=", bgn_date),
             ("trade_date", "<", stp_date),
         ], t_value_columns=["trade_date", x, y],
             t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
-        member_df_agg = pd.pivot_table(data=member_df, index="trade_date", values=[x, y], aggfunc=sum)
-        return member_df_agg[x] - member_df_agg[y]
+        if len(member_df) > 0:
+            member_df_agg = pd.pivot_table(data=member_df, index="trade_date", values=[x, y], aggfunc=sum)
+            return member_df_agg[x] - member_df_agg[y]
+        else:
+            return pd.Series(data=np.nan, index=self.calendar.get_iter_list(bgn_date, stp_date, True))
 
     @staticmethod
     def __cal_wgt_diff(df: pd.DataFrame, x: str, y: str):
@@ -305,4 +309,7 @@ class CFactorsWithInstruVolumeAndInstruMember(CFactors):
             ("trade_date", "<", stp_date),
         ], t_value_columns=["trade_date", x, y],
             t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
-        return member_df.groupby(by="trade_date").apply(self.__cal_wgt_diff, args=(x, y))
+        if len(member_df) > 0:
+            return member_df.groupby(by="trade_date").apply(self.__cal_wgt_diff, x=x, y=y)
+        else:
+            return pd.Series(data=np.nan, index=self.calendar.get_iter_list(bgn_date, stp_date, True))

@@ -114,7 +114,7 @@ class CFactorsLIQUID(CFactorsWithMajorReturn):
         df = db_reader.read_by_conditions(t_conditions=[
             ("trade_date", ">=", bgn_date),
             ("trade_date", "<", stp_date),
-        ], t_value_columns=["trade_date", "major_return", "amt"],
+        ], t_value_columns=["trade_date", "major_return", "amount"],
             t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
         db_reader.close()
         df.set_index("trade_date", inplace=True)
@@ -174,7 +174,7 @@ class CFactorsNETOI(CFactorsWithInstruVolumeAndInstruMember):
         db_reader.close()
         df.set_index("trade_date", inplace=True)
         df["net"] = self._get_net_srs(instrument, bgn_date, stp_date, "lngSum", "srtSum")
-        return df["net"] / df["oi"]
+        return df["net"] / df["oi"] * 100
 
 
 class CFactorsNETOIW(CFactorsWithInstruVolumeAndInstruMember):
@@ -192,7 +192,7 @@ class CFactorsNETOIW(CFactorsWithInstruVolumeAndInstruMember):
         db_reader.close()
         df.set_index("trade_date", inplace=True)
         df["net"] = self._get_wgt_net_srs(instrument, bgn_date, stp_date, "lngSum", "srtSum")
-        return df["net"] / df["oi"]
+        return df["net"] / df["oi"] * 100
 
 
 class CFactorsNETDOI(CFactorsWithInstruVolumeAndInstruMember):
@@ -210,7 +210,7 @@ class CFactorsNETDOI(CFactorsWithInstruVolumeAndInstruMember):
         db_reader.close()
         df.set_index("trade_date", inplace=True)
         df["net"] = self._get_net_srs(instrument, bgn_date, stp_date, "lngDlt", "srtDlt")
-        return df["net"] / df["oi"]
+        return df["net"] / df["oi"] * 100
 
 
 class CFactorsNETDOIW(CFactorsWithInstruVolumeAndInstruMember):
@@ -228,4 +228,4 @@ class CFactorsNETDOIW(CFactorsWithInstruVolumeAndInstruMember):
         db_reader.close()
         df.set_index("trade_date", inplace=True)
         df["net"] = self._get_wgt_net_srs(instrument, bgn_date, stp_date, "lngDlt", "srtDlt")
-        return df["net"] / df["oi"]
+        return df["net"] / df["oi"] * 100
