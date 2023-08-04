@@ -283,7 +283,7 @@ class CFactorsIBETA(CFactorsWithMajorReturnAndMacroEconomic):
         month_ret_df = df[["trade_month", "major_return"]].groupby(by="trade_month").apply(lambda z: np.prod(1 + z) - 1)
         filter_month = (month_ret_df.index >= base_month) & (month_ret_df.index < end_last_month)
         selected_month_ret_df: pd.DataFrame = month_ret_df.loc[filter_month].copy()
-        selected_month_ret_df["cpi"] = self.manager_macro_economic.df["cpi_rate"]
+        selected_month_ret_df["cpi"] = self.manager_macro_economic.df["cpi_rate"] / 100
         ms = cal_rolling_beta(selected_month_ret_df, x="cpi", y="major_return", rolling_window=arg_win_month)
         ms = pd.concat([ms, pd.Series({end_last_month: np.nan, iter_dates[-1][0:6]: np.nan})])
         ms_shift = ms.shift(2)
@@ -334,6 +334,6 @@ class CMpFactorWithArgWin(object):
         pool.close()
         pool.join()
         t1 = dt.datetime.now()
-        print(f"... {SetFontGreen('sum')} of {SetFontGreen(self.factor_type)} transformed")
+        print(f"... raw factor {SetFontGreen(self.factor_type)} generated")
         print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
         return 0

@@ -5,7 +5,8 @@ from returns.available_universe import cal_available_universe
 from returns.market_return import cal_market_return
 from returns.test_return import cal_test_return
 from returns.test_return_neutral import cal_test_return_neutral
-from factors.factors_cls_without_args import CFactorMTM
+from factors.factors_cls_without_args import (CFactorMTM, CFactorsSIZE, CFactorsOI, CFactorsRS, CFactorsBASIS, CFactorsTS, CFactorsLIQUID,
+                                              CFactorsSR, CFactorsHR, CFactorsNETOI, CFactorsNETOIW, CFactorsNETDOI, CFactorsNETDOIW)
 from factors.factors_cls_with_args import CMpFactorWithArgWin
 from factors.factors_cls_transformer import CMpTransformer
 
@@ -92,7 +93,7 @@ if __name__ == "__main__":
     args_parser.add_argument("-p", "--process", type=int, default=5, help="""number of process to be called when calculating, default = 5""")
     args_parser.add_argument("-f", "--factor", type=str, default="",
                              help="""optional, must be provided if switch = 'factors_exposure', use this to decide which factor, available options = {
-    'MTM', SIZE','OI', 'RS', 'BASIS','TS','LIQUID','SR','HR','NETOI','NETOIW','NETDOI',
+    'MTM', SIZE','OI', 'RS', 'BASIS','TS','LIQUID','SR','HR','NETOI','NETOIW','NETDOI','NETDOIW',
     'SKEW','VOL','RVOL','CV','CTP','CVP','CSP','BETA','VAL','CBETA','IBETA','MACD','KDJ','RSI',  
     }""")
     args_parser.add_argument("-t", "--type", type=str, choices=("v", "m", "a"),
@@ -170,38 +171,26 @@ if __name__ == "__main__":
             calendar=calendar,
         )
     elif switch in ["FE"]:
+        shared_keywords = dict(concerned_instruments_universe=concerned_instruments_universe, factors_exposure_dir=factors_exposure_dir,
+                               database_structure=database_structure, calendar=calendar)
+        raw_factor_bgn_date = bgn_dates_in_overwrite_mod["FEB"] if run_mode in ["O"] else bgn_date
         if factor == "MTM":
-            agent_factor = CFactorMTM(
-                futures_by_instrument_dir=futures_by_instrument_dir,
-                major_return_db_name=major_return_db_name,
-                concerned_instruments_universe=concerned_instruments_universe,
-                factors_exposure_dir=factors_exposure_dir,
-                database_structure=database_structure,
-                calendar=calendar)
-            agent_factor.core(run_mode=run_mode, bgn_date=bgn_dates_in_overwrite_mod["FEB"] if run_mode in ["O"] else bgn_date, stp_date=stp_date)
-            agent_transformer = CMpTransformer(proc_num=proc_num, src_factor_id="MTM", transform_type="SUM", arg_wins=factors_settings["MTM"]["S"],
-                                               run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
-            agent_transformer.mp_cal_transform(concerned_instruments_universe=concerned_instruments_universe, factors_exposure_dir=factors_exposure_dir,
-                                               database_structure=database_structure, calendar=calendar)
-            agent_transformer = CMpTransformer(proc_num=proc_num, src_factor_id="MTM", transform_type="SHARPE", arg_wins=factors_settings["MTM"]["SP"],
-                                               run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
-            agent_transformer.mp_cal_transform(concerned_instruments_universe=concerned_instruments_universe, factors_exposure_dir=factors_exposure_dir,
-                                               database_structure=database_structure, calendar=calendar)
+            agent_factor = CFactorMTM(futures_by_instrument_dir, major_return_db_name, **shared_keywords)
+            agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
+
+            agent_transformer = CMpTransformer(proc_num, [factor], "SUM", factors_settings["MTM"]["S"], run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+            agent_transformer = CMpTransformer(proc_num, [factor], "SHARPE", factors_settings["MTM"]["SP"], run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
 
         if factor == "IBETA":
-            agent_factor = CMpFactorWithArgWin(proc_num=proc_num, factor_type="IBETA", arg_wins=factors_settings["IBETA"][""], run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
-            agent_factor.mp_cal_factor(futures_by_instrument_dir=futures_by_instrument_dir,
-                                       major_return_db_name=major_return_db_name,
-                                       macro_economic_dir=macro_economic_dir,
-                                       cpi_m2_file=cpi_m2_file,
-                                       concerned_instruments_universe=concerned_instruments_universe,
-                                       factors_exposure_dir=factors_exposure_dir,
-                                       database_structure=database_structure,
-                                       calendar=calendar)
+            agent_factor = CMpFactorWithArgWin(proc_num, factor, factors_settings[factor][""], run_mode, bgn_date, stp_date)
+            agent_factor.mp_cal_factor(futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name,
+                                       macro_economic_dir=macro_economic_dir, cpi_m2_file=cpi_m2_file, **shared_keywords)
 
-            # agent_mp = CMpTransformerLagDiff(proc_num=proc_num, arg_wins=factors_settings["IBETA"]["LD"], src_factor_id=factor_id, run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
-            # agent_mp.mp_cal_transform(concerned_instruments_universe=concerned_instruments_universe, factors_exposure_dir=factors_exposure_dir,
-            #                           database_structure=database_structure, calendar=calendar)
+            src_factor_ids = [f"{factor}{_:03d}" for _ in factors_settings[factor][""]]
+            agent_transformer = CMpTransformer(proc_num, src_factor_ids, "LD", factors_settings[factor]["LD"], run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
 
     # elif switch in ["FEN"]:
     #     cal_factors_neutral_mp(
