@@ -96,12 +96,6 @@ class CFactors(object):
         self.calendar = calendar
         self.factor_id: str = "FactorIdNotInit"
 
-    def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
-        pass
-
-    def _set_factor_id(self):
-        pass
-
     def __get_dst_lib_reader(self) -> CManagerLibReader:
         factor_lib_struct = self.database_structure[self.factor_id]
         factor_lib = CManagerLibReader(
@@ -127,6 +121,18 @@ class CFactors(object):
         factor_lib.close()
         return dst_lib_is_continuous
 
+    def __save(self, update_df: pd.DataFrame, using_index: bool, run_mode: str):
+        factor_lib = self.__get_dst_lib_writer(run_mode)
+        factor_lib.update(t_update_df=update_df, t_using_index=using_index)
+        factor_lib.close()
+        return 0
+
+    def _set_factor_id(self):
+        pass
+
+    def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
+        pass
+
     def _get_update_df(self, run_mode: str, bgn_date: str, stp_date: str) -> pd.DataFrame:
         all_factor_data = {}
         for instrument in self.universe:
@@ -134,12 +140,6 @@ class CFactors(object):
         all_factor_df = pd.DataFrame(all_factor_data)
         update_df = all_factor_df.stack().reset_index(level=1)
         return update_df
-
-    def __save(self, update_df: pd.DataFrame, using_index: bool, run_mode: str):
-        factor_lib = self.__get_dst_lib_writer(run_mode)
-        factor_lib.update(t_update_df=update_df, t_using_index=using_index)
-        factor_lib.close()
-        return 0
 
     def core(self, run_mode: str, bgn_date: str, stp_date: str):
         self._set_factor_id()
@@ -149,6 +149,16 @@ class CFactors(object):
         else:
             print(f"... {SetFontGreen(self.factor_id)} {SetFontRed('FAILED')} to update")
         return 0
+
+    @staticmethod
+    def truncate_series(new_srs: pd.Series, bgn_date: str) -> pd.Series:
+        filter_dates = new_srs.index >= bgn_date
+        return new_srs.loc[filter_dates]
+
+    @staticmethod
+    def truncate_dataFrame(new_df: pd.DataFrame, bgn_date: str) -> pd.DataFrame:
+        filter_dates = new_df.index >= bgn_date
+        return new_df.loc[filter_dates]
 
 
 class CFactorsWithMajorReturn(CFactors):
@@ -175,11 +185,6 @@ class CFactorsWithMajorReturnAndArgWin(CFactorsWithMajorReturn):
         iter_dates = self.calendar.get_iter_list(bgn_date, stp_date, True)
         self.base_date = self.calendar.get_next_date(iter_dates[0], -self.arg_win + 1)
         return 0
-
-    @staticmethod
-    def _truncate(new_srs: pd.Series, bgn_date: str) -> pd.Series:
-        filter_dates = new_srs.index >= bgn_date
-        return new_srs.loc[filter_dates]
 
 
 class CFactorsWithMajorReturnAndMarketReturn(CFactorsWithMajorReturnAndArgWin):

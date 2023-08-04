@@ -2,7 +2,7 @@ import datetime as dt
 import multiprocessing as mp
 import numpy as np
 import pandas as pd
-from skyrim.whiterun import SetFontGreen, SetFontRed
+from skyrim.whiterun import SetFontGreen
 from factors.factors_cls_base import (CFactorsWithMajorReturnAndArgWin, CFactorsWithMajorReturnAndMarketReturn,
                                       CFactorsWithMajorReturnAndExchangeRate, CFactorsWithMajorReturnAndMacroEconomic)
 
@@ -54,7 +54,7 @@ class CFactorsSKEW(CFactorsWithMajorReturnAndArgWin):
         db_reader.close()
         df.set_index("trade_date", inplace=True)
         s = df["major_return"].rolling(window=self.arg_win).skew()
-        return self._truncate(s, bgn_date)
+        return self.truncate_series(s, bgn_date)
 
 
 class CFactorsVOL(CFactorsWithMajorReturnAndArgWin):
@@ -73,7 +73,7 @@ class CFactorsVOL(CFactorsWithMajorReturnAndArgWin):
         db_reader.close()
         df.set_index("trade_date", inplace=True)
         s = df["major_return"].rolling(window=self.arg_win).std() * np.sqrt(252)
-        return self._truncate(s, bgn_date)
+        return self.truncate_series(s, bgn_date)
 
 
 class CFactorsRVOL(CFactorsWithMajorReturnAndArgWin):
@@ -97,7 +97,7 @@ class CFactorsRVOL(CFactorsWithMajorReturnAndArgWin):
         rlc = df["low"] / df["close"] - 1
         s2 = (rho * rhc / 2 + rlo * rlc / 2).rolling(window=self.arg_win).mean()
         s = np.sqrt(252 * s2)
-        return self._truncate(s, bgn_date)
+        return self.truncate_series(s, bgn_date)
 
 
 class CFactorsCV(CFactorsWithMajorReturnAndArgWin):
@@ -118,7 +118,7 @@ class CFactorsCV(CFactorsWithMajorReturnAndArgWin):
         sd = df["major_return"].rolling(window=self.arg_win).std()
         mu = df["major_return"].rolling(window=self.arg_win).mean()
         s = sd / mu.abs() / np.sqrt(252)
-        return self._truncate(s, bgn_date)
+        return self.truncate_series(s, bgn_date)
 
 
 class CFactorsCTP(CFactorsWithMajorReturnAndArgWin):
@@ -141,7 +141,7 @@ class CFactorsCTP(CFactorsWithMajorReturnAndArgWin):
         df["turnover"] = df["volume"] / df["aver_oi"]
         x, y = "turnover", "instru_idx"
         s = -cal_rolling_corr(df=df, x=x, y=y, rolling_window=self.arg_win)
-        return self._truncate(s, bgn_date)
+        return self.truncate_series(s, bgn_date)
 
 
 class CFactorsCVP(CFactorsWithMajorReturnAndArgWin):
@@ -162,7 +162,7 @@ class CFactorsCVP(CFactorsWithMajorReturnAndArgWin):
 
         x, y = "volume", "instru_idx"
         s = -cal_rolling_corr(df=df, x=x, y=y, rolling_window=self.arg_win)
-        return self._truncate(s, bgn_date)
+        return self.truncate_series(s, bgn_date)
 
 
 class CFactorsCSP(CFactorsWithMajorReturnAndArgWin):
@@ -189,7 +189,7 @@ class CFactorsCSP(CFactorsWithMajorReturnAndArgWin):
         df["sigma"] = df["major_return"].rolling(window=self._near_short_term).std()
         x, y = "sigma", "instru_idx"
         s = -cal_rolling_corr(df=df, x=x, y=y, rolling_window=self.arg_win)
-        return self._truncate(s, bgn_date)
+        return self.truncate_series(s, bgn_date)
 
 
 class CFactorsVAL(CFactorsWithMajorReturnAndArgWin):
@@ -211,7 +211,7 @@ class CFactorsVAL(CFactorsWithMajorReturnAndArgWin):
         df["near"] = df["close"].rolling(window=self._near_short_term).mean()
         df["hist"] = df["close"].rolling(window=self.arg_win).mean()
         s = df["near"] / df["hist"] - 1
-        return self._truncate(s, bgn_date)
+        return self.truncate_series(s, bgn_date)
 
 
 class CFactorsBETA(CFactorsWithMajorReturnAndMarketReturn):
@@ -232,7 +232,7 @@ class CFactorsBETA(CFactorsWithMajorReturnAndMarketReturn):
 
         df["market"] = self.manager_market_return.df["market"]
         s = cal_rolling_beta(df, x="market", y="major_return", rolling_window=self.arg_win)
-        return self._truncate(s, bgn_date)
+        return self.truncate_series(s, bgn_date)
 
 
 class CFactorsCBETA(CFactorsWithMajorReturnAndExchangeRate):
@@ -253,7 +253,7 @@ class CFactorsCBETA(CFactorsWithMajorReturnAndExchangeRate):
 
         df["exchange"] = self.manager_exchange_rate.df["pct_chg"] / 100
         s = cal_rolling_beta(df, x="exchange", y="major_return", rolling_window=self.arg_win)
-        return self._truncate(s, bgn_date)
+        return self.truncate_series(s, bgn_date)
 
 
 class CFactorsIBETA(CFactorsWithMajorReturnAndMacroEconomic):
@@ -289,7 +289,7 @@ class CFactorsIBETA(CFactorsWithMajorReturnAndMacroEconomic):
         ms_shift = ms.shift(2)
         df = df.merge(right=pd.DataFrame({"cbeta": ms_shift}), left_on="trade_month", right_index=True, how="left")
         s = df["cbeta"]
-        return self._truncate(s, bgn_date)
+        return self.truncate_series(s, bgn_date)
 
 
 class CMpFactorWithArgWin(object):

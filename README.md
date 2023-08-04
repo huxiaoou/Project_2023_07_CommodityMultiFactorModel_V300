@@ -38,3 +38,47 @@
 + agg_by_instrument: P(close), VOL, OI, AMT
 + others: basisRate, registerStock
 + instru_idx: open,high,low,close
+
+## Class factors
+
++ CReaderMarketReturn
++ CReaderExchangeRate
++ CReaderMacroEconomic
++ CDbByInstrument
++ CCSVByInstrument
+    + CMdByInstrument
+    + CFundByInstrument
+
++ CFactors: Core(_set_factor_id(), _get_update_df(_get_instrument_factor_exposure())), _truncate_series(), _truncate_dataFrame()
+    + CFactorsWithMajorReturn
+        + CFactorMTM
+        + CFactorsWithMajorReturnAndArgWin: _set_base_date()
+            + CFactorsSKEW: _set_factor_id(), _get_instrument_factor_exposure()
+            + CFactorsVOL: _set_factor_id(), _get_instrument_factor_exposure()
+            + CFactorsRVOL: _set_factor_id(), _get_instrument_factor_exposure()
+            + CFactorsCV: _set_factor_id(), _get_instrument_factor_exposure()
+            + CFactorsCTP: _set_factor_id(), _get_instrument_factor_exposure()
+            + CFactorsCVP: _set_factor_id(), _get_instrument_factor_exposure()
+            + CFactorsCSP: _set_factor_id(), _get_instrument_factor_exposure(), _set_base_date()
+            + CFactorsVAL: _set_factor_id(), _get_instrument_factor_exposure()
+            + CFactorsWithMajorReturnAndMarketReturn
+                + CFactorsBETA: _set_factor_id(), _get_instrument_factor_exposure()
+            + CFactorsWithMajorReturnAndExchangeRate
+                + CFactorsCBETA: _set_factor_id(), _get_instrument_factor_exposure()
+            + CFactorsWithMajorReturnAndMacroEconomic
+                + CFactorsIBETA: _set_factor_id(), _get_instrument_factor_exposure()
+    + CFactorsWithBasis
+    + CFactorsWithStock
+    + CFactorsWithMajorMinorAndMdc
+    + CFactorsWithInstruVolume
+    + CFactorsWithInstruVolumeAndInstruMember
+
++ CFactors: Core(_set_factor_id(), _get_update_df(_get_instrument_factor_exposure())), _truncate_series(), _truncate_dataFrame()
+    + CFactorsTransformer:  _get_update_df(_set_base_date(), _transform())
+    + CFactorsTransformerSum: _set_factor_id(), _transform()
+    + CFactorsTransformerAver: _set_factor_id(), _transform()
+    + CFactorsTransformerSharpe: _set_factor_id(), _transform()
+    + CFactorsTransformerBreakRatio: _set_factor_id(), _transform()
+    + CFactorsTransformerBreakDiff: _set_factor_id(), _transform()
+    + CFactorsTransformerLagRatio: _set_factor_id(), _transform(), _set_base_date()
+    + CFactorsTransformerLagDiff: _set_factor_id(), _transform(), _set_base_date()

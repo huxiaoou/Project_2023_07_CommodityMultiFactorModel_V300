@@ -23,11 +23,6 @@ class CFactorsTransformer(CFactors):
         self.arg_win = arg_win
         self.base_date = ""
 
-    def _set_base_date(self, bgn_date: str, stp_date: str):
-        iter_dates = self.calendar.get_iter_list(bgn_date, stp_date, True)
-        self.base_date = self.calendar.get_next_date(iter_dates[0], -self.arg_win + 1)
-        return 0
-
     def __get_src_lib_reader(self):
         factor_lib_struct = self.database_structure[self.src_factor_id]
         factor_lib = CManagerLibReader(
@@ -46,20 +41,20 @@ class CFactorsTransformer(CFactors):
         src_db_reader.close()
         return df
 
+    def _set_base_date(self, bgn_date: str, stp_date: str):
+        iter_dates = self.calendar.get_iter_list(bgn_date, stp_date, True)
+        self.base_date = self.calendar.get_next_date(iter_dates[0], -self.arg_win + 1)
+        return 0
+
     def _transform(self, pivot_table: pd.DataFrame) -> pd.DataFrame:
         pass
-
-    @staticmethod
-    def __truncate(new_df: pd.DataFrame, bgn_date: str) -> pd.DataFrame:
-        filter_dates = new_df.index >= bgn_date
-        return new_df.loc[filter_dates]
 
     def _get_update_df(self, run_mode: str, bgn_date: str, stp_date: str) -> pd.DataFrame:
         self._set_base_date(bgn_date, stp_date)
         src_df = self.__load_src_factor_data(stp_date)
         pivot_df = pd.pivot_table(data=src_df, index="trade_date", columns="instrument", values="value")
         new_df = self._transform(pivot_df)
-        self.__truncate(new_df, bgn_date)
+        self.truncate_dataFrame(new_df, bgn_date)
         update_df = new_df.stack().reset_index(level=1)
         return update_df
 
