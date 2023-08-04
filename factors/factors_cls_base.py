@@ -67,13 +67,13 @@ class CCSVByInstrument(object):
 
 class CMdByInstrument(CCSVByInstrument):
     # applied to: md_by_instru
-    def get_price_for_contract_at_day(self, instrument: str, contract: str, trade_date: str):
+    def get_price_for_contract_at_day(self, instrument: str, contract: str, trade_date: str) -> float:
         return self.manger_dfs[instrument].at[trade_date, contract]
 
 
 class CFundByInstrument(CCSVByInstrument):
     # applied to: fundamental_by_instru
-    def get_var_by_instrument(self, instrument: str, var_name: str, bgn_date: str, stp_date: str):
+    def get_var_by_instrument(self, instrument: str, var_name: str, bgn_date: str, stp_date: str) -> pd.DataFrame:
         df = self.manger_dfs[instrument][[var_name]]
         filter_dates = (df.index >= bgn_date) & (df.index < stp_date)
         return df.loc[filter_dates]
@@ -279,3 +279,30 @@ class CFactorsWithInstruVolumeAndInstruMember(CFactors):
         super().__init__(concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
         self.manager_instru_volume = CDbByInstrument(futures_by_instrument_dir, instrument_volume_db_name)
         self.manager_instru_member = CDbByInstrument(futures_by_instrument_dir, instrument_member_db_name)
+
+    def _get_net_srs(self, instrument: str, bgn_date: str, stp_date: str, x: str, y: str):
+        member_db_reader = self.manager_instru_member.get_db_reader()
+        member_df = member_db_reader.read_by_conditions(t_conditions=[
+            ("trade_date", ">=", bgn_date),
+            ("trade_date", "<", stp_date),
+        ], t_value_columns=["trade_date", x, y],
+            t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
+        member_df_agg = pd.pivot_table(data=member_df, index="trade_date", values=[x, y], aggfunc=sum)
+        return member_df_agg[x] - member_df_agg[y]
+
+    @staticmethod
+    def __cal_wgt_diff(df: pd.DataFrame, x: str, y: str):
+        wgt_x = df[x].abs() / df[x].abs().sum()
+        wgt_y = df[y].abs() / df[y].abs().sum()
+        sum_x = df[x] @ wgt_x
+        sum_y = df[y] @ wgt_y
+        return sum_x - sum_y
+
+    def _get_wgt_net_srs(self, instrument: str, bgn_date: str, stp_date: str, x: str, y: str):
+        member_db_reader = self.manager_instru_member.get_db_reader()
+        member_df = member_db_reader.read_by_conditions(t_conditions=[
+            ("trade_date", ">=", bgn_date),
+            ("trade_date", "<", stp_date),
+        ], t_value_columns=["trade_date", x, y],
+            t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
+        return member_df.groupby(by="trade_date").apply(self.__cal_wgt_diff, args=(x, y))

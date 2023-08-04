@@ -22,6 +22,7 @@ factors_settings = {
     "NETOI": {"A": wins_aver, "BD": wins_break, "LD": wins_lag},
     "NETOIW": {"A": wins_aver, "BD": wins_break, "LD": wins_lag},
     "NETDOI": {"A": wins_aver, "BD": wins_break, "LD": wins_lag},
+    "NETDOIW": {"A": wins_aver, "BD": wins_break, "LD": wins_lag},
 
     "SKEW": {"": wins_full_term, "LD": wins_lag},
     "VOL": {"": wins_full_term, "LD": wins_lag},
@@ -54,6 +55,7 @@ factors_hr = ["HR"] + list(itertools.chain(*[[f"HR{k}{_:03d}" for _ in v] for k,
 factors_netoi = ["NETOI"] + list(itertools.chain(*[[f"NETOI{k}{_:03d}" for _ in v] for k, v in factors_settings["NETOI"].items()]))
 factors_netoiw = ["NETOIW"] + list(itertools.chain(*[[f"NETOIW{k}{_:03d}" for _ in v] for k, v in factors_settings["NETOIW"].items()]))
 factors_netdoi = ["NETDOI"] + list(itertools.chain(*[[f"NETDOI{k}{_:03d}" for _ in v] for k, v in factors_settings["NETDOI"].items()]))
+factors_netdoiw = ["NETDOIW"] + list(itertools.chain(*[[f"NETDOIW{k}{_:03d}" for _ in v] for k, v in factors_settings["NETDOIW"].items()]))
 
 factors_skew = [f"SKEW{w:03d}" for w in factors_settings["SKEW"][""]] + [f"SKEW{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["SKEW"][""], factors_settings["SKEW"]["LD"])]
 factors_vol = [f"VOL{w:03d}" for w in factors_settings["VOL"][""]] + [f"VOL{w:03d}LD{l:03d}" for w, l in itertools.product(factors_settings["VOL"][""], factors_settings["VOL"]["LD"])]
@@ -72,7 +74,8 @@ factors_kdj = [f"KDJ{n:03d}" for n in factors_settings["KDJ"]["N"]]
 factors_rsi = [f"RSI{n:03d}" for n in factors_settings["RSI"]["N"]]
 
 factors = factors_mtm + factors_size + factors_oi + factors_rs + \
-          factors_basis + factors_ts + factors_liquid + factors_sr + factors_hr + factors_netoi + factors_netoiw + factors_netdoi + \
+          factors_basis + factors_ts + factors_liquid + factors_sr + factors_hr + \
+          factors_netoi + factors_netoiw + factors_netdoi + factors_netdoiw + \
           factors_skew + factors_vol + factors_cv + factors_rvol + \
           factors_ctp + factors_cvp + factors_csp + factors_beta + \
           factors_val + factors_cbeta + factors_ibeta + \
