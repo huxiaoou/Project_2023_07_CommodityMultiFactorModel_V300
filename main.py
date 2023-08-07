@@ -1,35 +1,25 @@
 import argparse
+import pandas as pd
 import datetime as dt
-from returns.instrument_return import merge_instru_return
-from returns.available_universe import cal_available_universe
-from returns.market_return import cal_market_return
-from returns.test_return import cal_test_return
-from returns.test_return_neutral import cal_test_return_neutral
-from factors.factors_cls_without_args import (CFactorMTM, CFactorsSIZE, CFactorsOI, CFactorsRS, CFactorsBASIS, CFactorsTS, CFactorsLIQUID,
-                                              CFactorsSR, CFactorsHR, CFactorsNETOI, CFactorsNETOIW, CFactorsNETDOI, CFactorsNETDOIW)
-from factors.factors_cls_with_args import CMpFactorWithArgWin, CMpFactorMACD, CMpFactorKDJ, CMpFactorRSI
-from factors.factors_cls_transformer import CMpTransformer
-
-from factors.factors_neutral import cal_factors_neutral_mp
-from factors.factors_normalize_delinear import cal_factors_normalize_and_delinear_mp
-from factors.factors_return import cal_factors_return_mp
-from signals.signals_pure_factors_VANILLA import cal_signals_vanilla_mp
-from signals.signals_pure_factors_MA import cal_signals_ma_mp
-from signals.signals_portfolio_allocation_raw import cal_signals_raw_mp
-from signals.signals_portfolio_allocation_pure import cal_signals_pure_mp
-from signals.signals_opt_mov_ave import cal_signals_opt_vanilla_mp, cal_signals_opt_ma_mp, cal_signals_opt_raw_and_pure_mp
-from ic_tests.ic_tests_factors import cal_ic_tests_mp
-from ic_tests.ic_tests_factors_neutral import cal_ic_tests_neutral_mp
-from ic_tests.ic_tests_factors_delinear import cal_ic_tests_delinear_mp
-from ic_tests.ic_tests_summary import cal_ic_tests_summary_mp
-from ic_tests.ic_tests_summary_neutral import cal_ic_tests_neutral_summary_mp
-from ic_tests.ic_tests_summary_delinear import cal_ic_tests_delinear_summary_mp
-from ic_tests.ic_tests_comparison import cal_ic_tests_comparison
-from ic_tests.factors_exposure_corr import cal_factors_exposure_corr
-from simulations.simulation import cal_simulations_mp
-from simulations.evaluation import cal_evaluation_signals_mp
-from simulations.evaluation_by_year import evaluate_signal_by_year, plot_signals_nav_by_year
-from simulations.evaluation_positions_and_trades import cal_positions_and_trades_mp
+# from factors.factors_normalize_delinear import cal_factors_normalize_and_delinear_mp
+# from factors.factors_return import cal_factors_return_mp
+# from signals.signals_pure_factors_VANILLA import cal_signals_vanilla_mp
+# from signals.signals_pure_factors_MA import cal_signals_ma_mp
+# from signals.signals_portfolio_allocation_raw import cal_signals_raw_mp
+# from signals.signals_portfolio_allocation_pure import cal_signals_pure_mp
+# from signals.signals_opt_mov_ave import cal_signals_opt_vanilla_mp, cal_signals_opt_ma_mp, cal_signals_opt_raw_and_pure_mp
+# from ic_tests.ic_tests_factors import cal_ic_tests_mp
+# from ic_tests.ic_tests_factors_neutral import cal_ic_tests_neutral_mp
+# from ic_tests.ic_tests_factors_delinear import cal_ic_tests_delinear_mp
+# from ic_tests.ic_tests_summary import cal_ic_tests_summary_mp
+# from ic_tests.ic_tests_summary_neutral import cal_ic_tests_neutral_summary_mp
+# from ic_tests.ic_tests_summary_delinear import cal_ic_tests_delinear_summary_mp
+# from ic_tests.ic_tests_comparison import cal_ic_tests_comparison
+# from ic_tests.factors_exposure_corr import cal_factors_exposure_corr
+# from simulations.simulation import cal_simulations_mp
+# from simulations.evaluation import cal_evaluation_signals_mp
+# from simulations.evaluation_by_year import evaluate_signal_by_year, plot_signals_nav_by_year
+# from simulations.evaluation_positions_and_trades import cal_positions_and_trades_mp
 
 from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_rate_file,
                          futures_by_instrument_dir, major_return_db_name, major_minor_db_name,
@@ -38,23 +28,23 @@ from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_ra
                          instruments_return_dir, available_universe_dir,
                          test_return_dir, test_return_neutral_dir,
                          factors_exposure_dir, factors_exposure_neutral_dir,
-                         factors_exposure_norm_dir, factors_exposure_delinear_dir,
-                         factors_return_dir, factors_portfolio_dir, instruments_residual_dir,
-                         signals_dir, signals_allocation_dir, signals_opt_dir,
-                         ic_tests_dir, ic_tests_delinear_dir, factors_exposure_corr_dir,
-                         simulations_opt_dir, evaluations_opt_dir, by_year_dir, simu_positions_and_trades_dir,
+    # factors_exposure_norm_dir, factors_exposure_delinear_dir,
+    # factors_return_dir, factors_portfolio_dir, instruments_residual_dir,
+    # signals_dir, signals_allocation_dir, signals_opt_dir,
+    # ic_tests_dir, ic_tests_delinear_dir, factors_exposure_corr_dir,
+    # simulations_opt_dir, evaluations_opt_dir, by_year_dir, simu_positions_and_trades_dir,
                          calendar_path, instrument_info_path)
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification, sectors,
-                            available_universe_options, neutral_method, test_windows,
-                            factors_pool_options, factors_return_lags)
+                            available_universe_options, neutral_method, test_windows, factors_pool_options, factors_return_lags)
 from config_factor import factors_settings, factors
+from struct_lib_portfolio import database_structure
+from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
+
 # from config_portfolio import (available_factors, timing_factors,
 #                               pid, factors_return_lag, fast_n_slow_n_comb, raw_portfolio_options, pure_portfolio_options,
 #                               minimum_abs_weight, test_signals,
 #                               selected_sectors, selected_factors,
 #                               cost_rate, cost_reservation, init_premium, risk_free_rate)
-from struct_lib_portfolio import database_structure
-from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
 if __name__ == "__main__":
     args_parser = argparse.ArgumentParser(description="Entry point of this project", formatter_class=argparse.RawTextHelpFormatter)
@@ -66,7 +56,6 @@ if __name__ == "__main__":
     'tr': test return,
     'trn': test return neutral,
     'fe': factors exposure,
-    'fem': factors exposure moving average,
     'fen': factors exposure neutral,
     'dln': norm and delinear,
     'fr': factor return,
@@ -124,8 +113,13 @@ if __name__ == "__main__":
     # some shared data
     calendar = CCalendarMonthly(calendar_path)
     instru_into_tab = CInstrumentInfoTable(instrument_info_path, t_index_label="windCode", t_type="CSV")
+    mother_universe_df = pd.DataFrame({"instrument": concerned_instruments_universe})
+    sector_df = pd.DataFrame.from_dict({z: {sector_classification[z]: 1} for z in concerned_instruments_universe}, orient="index").fillna(0)
 
+    #  ----------- CORE -----------
     if switch in ["IR"]:  # "INSTRUMENT RETURN":
+        from returns.instrument_return import merge_instru_return
+
         merge_instru_return(
             bgn_date=bgn_date, stp_date=stp_date,
             futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name,
@@ -133,6 +127,8 @@ if __name__ == "__main__":
             concerned_instruments_universe=concerned_instruments_universe,
         )
     elif switch in ["AU"]:  # "AVAILABLE UNIVERSE"
+        from returns.available_universe import cal_available_universe
+
         cal_available_universe(
             run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
             instruments_universe=concerned_instruments_universe,
@@ -144,6 +140,8 @@ if __name__ == "__main__":
             calendar=calendar,
         )
     elif switch in ["MR"]:  # "MARKET RETURN"
+        from returns.market_return import cal_market_return
+
         cal_market_return(
             bgn_date=bgn_date, stp_date=stp_date,
             available_universe_dir=available_universe_dir,
@@ -152,6 +150,8 @@ if __name__ == "__main__":
             calendar=calendar,
         )
     elif switch in ["TR"]:  # "TEST RETURN"
+        from returns.test_return import cal_test_return
+
         cal_test_return(
             run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
             instruments_return_dir=instruments_return_dir,
@@ -160,6 +160,8 @@ if __name__ == "__main__":
             calendar=calendar,
         )
     elif switch in ["TRN"]:  # "TEST RETURN NEUTRAL"
+        from returns.test_return_neutral import cal_test_return_neutral
+
         cal_test_return_neutral(
             neutral_method=neutral_method,
             run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
@@ -172,6 +174,11 @@ if __name__ == "__main__":
             calendar=calendar,
         )
     elif switch in ["FE"]:
+        from factors.factors_cls_without_args import (CFactorMTM, CFactorsSIZE, CFactorsOI, CFactorsRS, CFactorsBASIS, CFactorsTS, CFactorsLIQUID,
+                                                      CFactorsSR, CFactorsHR, CFactorsNETOI, CFactorsNETOIW, CFactorsNETDOI, CFactorsNETDOIW)
+        from factors.factors_cls_with_args import CMpFactorWithArgWin, CMpFactorMACD, CMpFactorKDJ, CMpFactorRSI
+        from factors.factors_cls_transformer import CMpTransformer
+
         shared_keywords = dict(concerned_instruments_universe=concerned_instruments_universe, factors_exposure_dst_dir=factors_exposure_dir,
                                database_structure=database_structure, calendar=calendar)
         raw_factor_bgn_date = bgn_dates_in_overwrite_mod["FEB"] if run_mode in ["O"] else bgn_date
@@ -386,19 +393,19 @@ if __name__ == "__main__":
         if factor == "RSI":
             agent_factor = CMpFactorRSI(proc_num, factors_settings[factor]["N"], ewm_bgn_date, run_mode, bgn_date, stp_date)
             agent_factor.mp_cal_factor(futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name, **shared_keywords)
-
     elif switch in ["FEN"]:
+        from factors.factors_neutral import cal_factors_neutral_mp
+
         cal_factors_neutral_mp(
             proc_num=proc_num, factors=factors,
             neutral_method=neutral_method,
             run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-            concerned_instruments_universe=concerned_instruments_universe,
-            sector_classification=sector_classification,
+            mother_universe_df=mother_universe_df, sector_df=sector_df,
             available_universe_dir=available_universe_dir,
             factors_exposure_dir=factors_exposure_dir,
             factors_exposure_neutral_dir=factors_exposure_neutral_dir,
             database_structure=database_structure,
-        )
+            calendar=calendar, )
     # elif switch in ["DLN"]:
     #     cal_factors_normalize_and_delinear_mp(
     #         proc_num=proc_num, pids=list(factors_pool_options.keys()),

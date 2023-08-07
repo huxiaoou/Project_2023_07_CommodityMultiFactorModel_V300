@@ -82,7 +82,7 @@ factors = factors_mtm + factors_size + factors_oi + factors_rs + \
           factors_macd + factors_kdj + factors_rsi
 
 factors_list_size = len(factors)
-factors_neutral = ["{}.WS".format(_) for _ in factors]
+factors_neutral = ["{}_WS".format(_) for _ in factors]
 
 if __name__ == "__main__":
     print("\n".join(factors))
