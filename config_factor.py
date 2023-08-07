@@ -32,7 +32,7 @@ factors_settings = {
     "CTP": {"": wins_quad_term, "LD": wins_lag},
     "CVP": {"": wins_quad_term, "LD": wins_lag},
     "CSP": {"": wins_quad_term, "LD": wins_lag},
-    "BETA": {"": wins_quad_term, "LD": wins_lag},
+    "BETA": {"": (21,) + wins_quad_term, "LD": wins_lag},
 
     "VAL": {"": wins_long_term, "LD": wins_lag},
     "CBETA": {"": wins_long_term, "LD": wins_lag},

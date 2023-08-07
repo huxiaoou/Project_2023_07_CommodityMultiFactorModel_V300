@@ -18,7 +18,7 @@ class CReaderExchangeRate(object):
     def __init__(self, forex_dir: str, exchange_rate_file: str):
         src_path = os.path.join(forex_dir, exchange_rate_file)
         self.df = pd.read_excel(src_path)
-        self.df["trade_date"] = self.df["Date"].strftime("%Y%m%d")
+        self.df["trade_date"] = self.df["Date"].map(lambda _: _.strftime("%Y%m%d"))
         self.df.drop(labels=["Date"], axis=1, inplace=True)
         self.df.set_index("trade_date", inplace=True)
 

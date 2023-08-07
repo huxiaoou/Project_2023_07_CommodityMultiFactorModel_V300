@@ -31,7 +31,7 @@ from simulations.evaluation import cal_evaluation_signals_mp
 from simulations.evaluation_by_year import evaluate_signal_by_year, plot_signals_nav_by_year
 from simulations.evaluation_positions_and_trades import cal_positions_and_trades_mp
 
-from setup_model import (macro_economic_dir, cpi_m2_file,
+from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_rate_file,
                          futures_by_instrument_dir, major_return_db_name, major_minor_db_name,
                          instrument_volume_db_name, instrument_member_db_name,
                          md_by_instru_dir, fundamental_by_instru_dir,
@@ -296,6 +296,31 @@ if __name__ == "__main__":
             agent_transformer = CMpTransformer(proc_num, [factor], "BD", factors_settings[factor]["BD"], 1, run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
             agent_transformer = CMpTransformer(proc_num, [factor], "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor in ["SKEW", "VOL", "RVOL", "CV", "CTP", "CVP", "CSP", "VAL"]:
+            agent_factor = CMpFactorWithArgWin(proc_num, factor, factors_settings[factor][""], run_mode, bgn_date, stp_date)
+            agent_factor.mp_cal_factor(futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name, **shared_keywords)
+            src_factor_ids = [f"{factor}{_:03d}" for _ in factors_settings[factor][""]]
+            agent_transformer = CMpTransformer(proc_num, src_factor_ids, "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "BETA":
+            agent_factor = CMpFactorWithArgWin(proc_num, factor, factors_settings[factor][""], run_mode, bgn_date, stp_date)
+            agent_factor.mp_cal_factor(futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name,
+                                       market_return_dir=instruments_return_dir, market_return_file="market.return.csv.gz", **shared_keywords)
+
+            src_factor_ids = [f"{factor}{_:03d}" for _ in factors_settings[factor][""]]
+            agent_transformer = CMpTransformer(proc_num, src_factor_ids, "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
+            agent_transformer.mp_cal_transform(**shared_keywords)
+
+        if factor == "CBETA":
+            agent_factor = CMpFactorWithArgWin(proc_num, factor, factors_settings[factor][""], run_mode, bgn_date, stp_date)
+            agent_factor.mp_cal_factor(futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name,
+                                       forex_dir=forex_dir, exchange_rate_file=exchange_rate_file, **shared_keywords)
+
+            src_factor_ids = [f"{factor}{_:03d}" for _ in factors_settings[factor][""]]
+            agent_transformer = CMpTransformer(proc_num, src_factor_ids, "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
 
         if factor == "IBETA":

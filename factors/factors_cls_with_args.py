@@ -53,7 +53,7 @@ class CFactorsSKEW(CFactorsWithMajorReturnAndArgWin):
             t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
         db_reader.close()
         df.set_index("trade_date", inplace=True)
-        s = df["major_return"].rolling(window=self.arg_win).skew()
+        s = -df["major_return"].rolling(window=self.arg_win).skew()
         return self.truncate_series(s, bgn_date)
 
 
