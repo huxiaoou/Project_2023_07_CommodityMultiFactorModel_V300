@@ -14,8 +14,9 @@ from factors.factors_cls_base import CFactors
 
 class CFactorsTransformer(CFactors):
     def __init__(self, src_factor_id: str, arg_win: int, direction: int,
+                 factors_exposure_src_dir: str,
                  concerned_instruments_universe: list[str],
-                 factors_exposure_dir: str,
+                 factors_exposure_dst_dir: str,
                  database_structure: dict[str, CLib1Tab1],
                  calendar: CCalendarMonthly,
                  ):
@@ -24,22 +25,24 @@ class CFactorsTransformer(CFactors):
         :param src_factor_id:
         :param arg_win:
         :param direction: 1 or -1
+        :param factors_exposure_src_dir
         :param concerned_instruments_universe:
-        :param factors_exposure_dir:
+        :param factors_exposure_dst_dir:
         :param database_structure:
         :param calendar:
         """
-        super().__init__(concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
+        super().__init__(concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
         self.src_factor_id = src_factor_id
         self.arg_win = arg_win
         self.direction = direction
+        self.factors_exposure_src_dir = factors_exposure_src_dir
         self.base_date = ""
 
     def __get_src_lib_reader(self):
         factor_lib_struct = self.database_structure[self.src_factor_id]
         factor_lib = CManagerLibReader(
             t_db_name=factor_lib_struct.m_lib_name,
-            t_db_save_dir=self.factors_exposure_dir
+            t_db_save_dir=self.factors_exposure_src_dir
         )
         factor_lib.set_default(t_default_table_name=factor_lib_struct.m_tab.m_table_name)
         return factor_lib
@@ -160,13 +163,14 @@ class CFactorsTransformerLagDiff(CFactorsTransformer):
 
 class CMpTransformer(object):
     def __init__(self, proc_num: int,
-                 src_factor_ids: list[str], transform_type: str, arg_wins: tuple[int], direction: int,
+                 src_factor_ids: list[str], transform_type: str, arg_wins: tuple[int], direction: int, src_factor_dir: str,
                  run_mode: str, bgn_date: str, stp_date: str, tag: str):
         self.proc_num = proc_num
         self.src_factor_ids = src_factor_ids
         self.transform_type = transform_type.upper()
         self.arg_wins = arg_wins
         self.direction = direction
+        self.src_factor_dir = src_factor_dir
         self.run_mode = run_mode
         self.bgn_date = bgn_date
         self.stp_date = stp_date
@@ -177,19 +181,19 @@ class CMpTransformer(object):
         pool = mp.Pool(processes=self.proc_num)
         for src_factor_id, arg_win in ittl.product(self.src_factor_ids, self.arg_wins):
             if self.transform_type == "SUM":
-                transformer = CFactorsTransformerSum(src_factor_id, arg_win, self.direction, **kwargs)
+                transformer = CFactorsTransformerSum(src_factor_id, arg_win, self.direction, self.src_factor_dir, **kwargs)
             elif self.transform_type == "AVER":
-                transformer = CFactorsTransformerAver(src_factor_id, arg_win, self.direction, **kwargs)
+                transformer = CFactorsTransformerAver(src_factor_id, arg_win, self.direction, self.src_factor_dir, **kwargs)
             elif self.transform_type == "SHARPE":
-                transformer = CFactorsTransformerSharpe(src_factor_id, arg_win, self.direction, **kwargs)
+                transformer = CFactorsTransformerSharpe(src_factor_id, arg_win, self.direction, self.src_factor_dir, **kwargs)
             elif self.transform_type == "BD":
-                transformer = CFactorsTransformerBreakDiff(src_factor_id, arg_win, self.direction, **kwargs)
+                transformer = CFactorsTransformerBreakDiff(src_factor_id, arg_win, self.direction, self.src_factor_dir, **kwargs)
             elif self.transform_type == "BR":
-                transformer = CFactorsTransformerBreakRatio(src_factor_id, arg_win, self.direction, **kwargs)
+                transformer = CFactorsTransformerBreakRatio(src_factor_id, arg_win, self.direction, self.src_factor_dir, **kwargs)
             elif self.transform_type == "LD":
-                transformer = CFactorsTransformerLagDiff(src_factor_id, arg_win, self.direction, **kwargs)
+                transformer = CFactorsTransformerLagDiff(src_factor_id, arg_win, self.direction, self.src_factor_dir, **kwargs)
             elif self.transform_type == "LR":
-                transformer = CFactorsTransformerLagRatio(src_factor_id, arg_win, self.direction, **kwargs)
+                transformer = CFactorsTransformerLagRatio(src_factor_id, arg_win, self.direction, self.src_factor_dir, **kwargs)
             else:
                 transformer = None
             if transformer is not None:

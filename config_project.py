@@ -131,7 +131,7 @@ sector_classification = {
 }
 
 # --- test return ---
-test_windows = [3, 5, 10, 15, 20]  # 5
+test_windows = [5, 10, 15, 20]  # 4
 test_lag = 1
 factors_return_lags = (0, 1)
 

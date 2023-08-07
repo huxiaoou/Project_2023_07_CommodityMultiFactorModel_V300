@@ -344,10 +344,10 @@ class CMpFactorWithArgWin(object):
 class CFactorsMACD(CFactorsWithMajorReturn):
     def __init__(self, fast: int, slow: int, alpha: float, ewm_bgn_date: str, futures_by_instrument_dir: str, major_return_db_name: str,
                  concerned_instruments_universe: list[str],
-                 factors_exposure_dir: str,
+                 factors_exposure_dst_dir: str,
                  database_structure: dict[str, CLib1Tab1],
                  calendar: CCalendarMonthly, ):
-        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
+        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
         self.fast = fast
         self.slow = slow
         self.alpha = alpha
@@ -377,10 +377,10 @@ class CFactorsMACD(CFactorsWithMajorReturn):
 class CFactorsKDJ(CFactorsWithMajorReturn):
     def __init__(self, n: int, ewm_bgn_date: str, futures_by_instrument_dir: str, major_return_db_name: str,
                  concerned_instruments_universe: list[str],
-                 factors_exposure_dir: str,
+                 factors_exposure_dst_dir: str,
                  database_structure: dict[str, CLib1Tab1],
                  calendar: CCalendarMonthly, ):
-        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
+        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
         self.n = n
         self.ewm_bgn_date = ewm_bgn_date
 
@@ -410,10 +410,10 @@ class CFactorsKDJ(CFactorsWithMajorReturn):
 class CFactorsRSI(CFactorsWithMajorReturn):
     def __init__(self, n: int, ewm_bgn_date: str, futures_by_instrument_dir: str, major_return_db_name: str,
                  concerned_instruments_universe: list[str],
-                 factors_exposure_dir: str,
+                 factors_exposure_dst_dir: str,
                  database_structure: dict[str, CLib1Tab1],
                  calendar: CCalendarMonthly, ):
-        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
+        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
         self.n = n
         self.ewm_bgn_date = ewm_bgn_date
 

@@ -49,6 +49,16 @@ database_structure.update({
         })
     ) for z in factors})
 
+database_structure.update({
+    z: CLib1Tab1(
+        t_lib_name=z + ".db",
+        t_tab=CTable({
+            "table_name": z,
+            "primary_keys": {"trade_date": "TEXT", "instrument": "TEXT"},
+            "value_columns": {"value": "REAL"},
+        })
+    ) for z in [f"{f}_M{m:03d}" for f, m in ittl.product(factors, test_windows)]})
+
 # factors neutral structure
 database_structure.update({
     z: CLib1Tab1(
