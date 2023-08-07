@@ -28,9 +28,9 @@
 | VAL     | P                       | major_return.db                            | AVER[21]P/Aver[T]P                   | T=(126,252,378,504)      | X - X[L] L=(21,63,252)                                                           | (5,10,15)      |
 | CBETA   | R,RC                    | major_return.db, forex exchange rate       | COV[T]{R,RC}/VAR[T]{RC}              | T=(126,252,378,504)      | X - X[L] L=(21,63,252)                                                           | (5,10,15)      |
 | IBETA   | R,RC                    | major_return.db, macro economic            | COV[T]{R,RC}/VAR[T]{RC}              | T=(126,252,378,504)      | X - X[L] L=(21,63,252)                                                           | (5,10,15)      |
-| MACD    | (O,H,L,C)               | major_return.db                            | MACD(F, S, ALPHA)                    | (F=10, S=21, ALPHA=0.2)  |                                                                                  | (5,10,15)      |
-| KDJ     | (O,H,L,C)               | major_return.db                            | KDJ(N)                               | (N=10, 15)               |                                                                                  | (5,10,15)      |
-| RSI     | (O,H,L,C)               | major_return.db                            | RSI(N)                               | (N=10, 15)               |                                                                                  | (5,10,15)      |
+| MACD    | (O,H,L,C)               | major_return.db                            | MACD(F, S, ALPHA)                    | (F=10, S=21, ALPHA=0.2)  |                                                                                  |                |
+| KDJ     | (O,H,L,C)               | major_return.db                            | KDJ(N)                               | (N=10, 15)               |                                                                                  |                |
+| RSI     | (O,H,L,C)               | major_return.db                            | RSI(N)                               | (N=10, 15)               |                                                                                  |                |
 
 ## data involved
 

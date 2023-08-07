@@ -7,7 +7,7 @@ from returns.test_return import cal_test_return
 from returns.test_return_neutral import cal_test_return_neutral
 from factors.factors_cls_without_args import (CFactorMTM, CFactorsSIZE, CFactorsOI, CFactorsRS, CFactorsBASIS, CFactorsTS, CFactorsLIQUID,
                                               CFactorsSR, CFactorsHR, CFactorsNETOI, CFactorsNETOIW, CFactorsNETDOI, CFactorsNETDOIW)
-from factors.factors_cls_with_args import CMpFactorWithArgWin
+from factors.factors_cls_with_args import CMpFactorWithArgWin, CMpFactorMACD, CMpFactorKDJ, CMpFactorRSI
 from factors.factors_cls_transformer import CMpTransformer
 
 from factors.factors_neutral import cal_factors_neutral_mp
@@ -174,6 +174,7 @@ if __name__ == "__main__":
         shared_keywords = dict(concerned_instruments_universe=concerned_instruments_universe, factors_exposure_dir=factors_exposure_dir,
                                database_structure=database_structure, calendar=calendar)
         raw_factor_bgn_date = bgn_dates_in_overwrite_mod["FEB"] if run_mode in ["O"] else bgn_date
+        ewm_bgn_date = bgn_dates_in_overwrite_mod["FEB"]
         if factor == "MTM":
             agent_factor = CFactorMTM(futures_by_instrument_dir, major_return_db_name, **shared_keywords)
             agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
@@ -332,6 +333,18 @@ if __name__ == "__main__":
             agent_transformer = CMpTransformer(proc_num, src_factor_ids, "LD", factors_settings[factor]["LD"], 1, run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
 
+        if factor == "MACD":
+            agent_factor = CMpFactorMACD(proc_num, factors_settings[factor]["F"], factors_settings[factor]["S"], factors_settings[factor]["ALPHA"],
+                                         ewm_bgn_date, run_mode, bgn_date, stp_date)
+            agent_factor.mp_cal_factor(futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name, **shared_keywords)
+
+        if factor == "KDJ":
+            agent_factor = CMpFactorKDJ(proc_num, factors_settings[factor]["N"], ewm_bgn_date, run_mode, bgn_date, stp_date)
+            agent_factor.mp_cal_factor(futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name, **shared_keywords)
+
+        if factor == "RSI":
+            agent_factor = CMpFactorRSI(proc_num, factors_settings[factor]["N"], ewm_bgn_date, run_mode, bgn_date, stp_date)
+            agent_factor.mp_cal_factor(futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name, **shared_keywords)
     # elif switch in ["FEN"]:
     #     cal_factors_neutral_mp(
     #         proc_num=proc_num, factors=factors,

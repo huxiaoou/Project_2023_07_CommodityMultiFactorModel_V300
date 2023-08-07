@@ -1,9 +1,11 @@
 import datetime as dt
+import itertools as ittl
 import multiprocessing as mp
 import numpy as np
 import pandas as pd
-from skyrim.whiterun import SetFontGreen
-from factors.factors_cls_base import (CFactorsWithMajorReturnAndArgWin, CFactorsWithMajorReturnAndMarketReturn,
+from skyrim.whiterun import CCalendarMonthly, SetFontGreen
+from skyrim.falkreath import CLib1Tab1
+from factors.factors_cls_base import (CFactorsWithMajorReturn, CFactorsWithMajorReturnAndArgWin, CFactorsWithMajorReturnAndMarketReturn,
                                       CFactorsWithMajorReturnAndExchangeRate, CFactorsWithMajorReturnAndMacroEconomic)
 
 
@@ -293,7 +295,7 @@ class CFactorsIBETA(CFactorsWithMajorReturnAndMacroEconomic):
 
 
 class CMpFactorWithArgWin(object):
-    def __init__(self, proc_num: int, factor_type: str, arg_wins: tuple[int], run_mode, bgn_date, stp_date):
+    def __init__(self, proc_num: int, factor_type: str, arg_wins: tuple[int], run_mode: str, bgn_date: str, stp_date: str):
         self.proc_num = proc_num
         self.factor_type = factor_type.upper()
         self.arg_wins = arg_wins
@@ -335,5 +337,181 @@ class CMpFactorWithArgWin(object):
         pool.join()
         t1 = dt.datetime.now()
         print(f"... raw factor {SetFontGreen(self.factor_type)} generated")
+        print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
+        return 0
+
+
+class CFactorsMACD(CFactorsWithMajorReturn):
+    def __init__(self, fast: int, slow: int, alpha: float, ewm_bgn_date: str, futures_by_instrument_dir: str, major_return_db_name: str,
+                 concerned_instruments_universe: list[str],
+                 factors_exposure_dir: str,
+                 database_structure: dict[str, CLib1Tab1],
+                 calendar: CCalendarMonthly, ):
+        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
+        self.fast = fast
+        self.slow = slow
+        self.alpha = alpha
+        self.ewm_bgn_date = ewm_bgn_date
+
+    def _set_factor_id(self):
+        self.factor_id = f"MACDF{self.fast:03d}S{self.slow:03d}A{int(100 * self.alpha):03d}"
+        return 0
+
+    def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
+        db_reader = self.manager_major_return.get_db_reader()
+        df = db_reader.read_by_conditions(t_conditions=[
+            ("trade_date", ">=", self.ewm_bgn_date),
+            ("trade_date", "<", stp_date),
+        ], t_value_columns=["trade_date", "instru_idx"],
+            t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
+        db_reader.close()
+        df.set_index("trade_date", inplace=True)
+
+        df["emaFast"] = df["instru_idx"].ewm(span=self.fast, adjust=False).mean()
+        df["emaSlow"] = df["instru_idx"].ewm(span=self.slow, adjust=False).mean()
+        df["diff"] = (df["emaFast"] / df["emaSlow"] - 1) * 100
+        s = df["diff"].ewm(alpha=self.alpha, adjust=False).mean()
+        return self.truncate_series(s, bgn_date)
+
+
+class CFactorsKDJ(CFactorsWithMajorReturn):
+    def __init__(self, n: int, ewm_bgn_date: str, futures_by_instrument_dir: str, major_return_db_name: str,
+                 concerned_instruments_universe: list[str],
+                 factors_exposure_dir: str,
+                 database_structure: dict[str, CLib1Tab1],
+                 calendar: CCalendarMonthly, ):
+        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
+        self.n = n
+        self.ewm_bgn_date = ewm_bgn_date
+
+    def _set_factor_id(self):
+        self.factor_id = f"KDJ{self.n:03d}"
+        return 0
+
+    def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
+        db_reader = self.manager_major_return.get_db_reader()
+        df = db_reader.read_by_conditions(t_conditions=[
+            ("trade_date", ">=", self.ewm_bgn_date),
+            ("trade_date", "<", stp_date),
+        ], t_value_columns=["trade_date", "highC", "lowC", "closeC"],
+            t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
+        db_reader.close()
+        df.set_index("trade_date", inplace=True)
+
+        df["Ln"] = df["lowC"].rolling(window=self.n).min()
+        df["Hn"] = df["highC"].rolling(window=self.n).max()
+        df["rsv"] = (df["closeC"] - df["Ln"]) / (df["Hn"] - df["Ln"]) * 100
+        df["k"] = df["rsv"].ewm(alpha=1 / 3, adjust=False).mean()
+        df["d"] = df["k"].ewm(alpha=1 / 3, adjust=False).mean()
+        s = df["k"] * 3 - df["d"] * 2
+        return self.truncate_series(s, bgn_date)
+
+
+class CFactorsRSI(CFactorsWithMajorReturn):
+    def __init__(self, n: int, ewm_bgn_date: str, futures_by_instrument_dir: str, major_return_db_name: str,
+                 concerned_instruments_universe: list[str],
+                 factors_exposure_dir: str,
+                 database_structure: dict[str, CLib1Tab1],
+                 calendar: CCalendarMonthly, ):
+        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dir, database_structure, calendar)
+        self.n = n
+        self.ewm_bgn_date = ewm_bgn_date
+
+    def _set_factor_id(self):
+        self.factor_id = f"RSI{self.n:03d}"
+        return 0
+
+    def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
+        db_reader = self.manager_major_return.get_db_reader()
+        df = db_reader.read_by_conditions(t_conditions=[
+            ("trade_date", ">=", self.ewm_bgn_date),
+            ("trade_date", "<", stp_date),
+        ], t_value_columns=["trade_date", "openC", "closeC"],
+            t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
+        db_reader.close()
+        df.set_index("trade_date", inplace=True)
+
+        df["d"] = df["closeC"] - df["openC"]
+        df["sign"] = [1 if z >= 0 else 0 for z in df["d"]]
+        df["posN"] = df["sign"].rolling(self.n).sum()
+        df["negN"] = self.n - df["posN"]
+        df["posSum"] = (df["d"] * df["sign"]).rolling(self.n).sum()
+        df["negSum"] = (-df["d"] * (1 - df["sign"])).rolling(self.n).sum()
+        df["avgU"] = (df["posSum"] / df["posN"]).fillna(0)
+        df["avgD"] = (df["negSum"] / df["negN"]).fillna(0)
+        s = df["avgU"] / (df["avgU"] + df["avgD"])
+        return self.truncate_series(s, bgn_date)
+
+
+class CMpFactorMACD(object):
+    def __init__(self, proc_num: int, fasts: tuple[int], slows: tuple[int], alphas: tuple[float], ewm_bgn_date: str,
+                 run_mode: str, bgn_date: str, stp_date: str):
+        self.proc_num = proc_num
+        self.fasts = fasts
+        self.slows = slows
+        self.alphas = alphas
+        self.ewm_bgn_date = ewm_bgn_date
+        self.run_mode = run_mode
+        self.bgn_date = bgn_date
+        self.stp_date = stp_date
+
+    def mp_cal_factor(self, **kwargs):
+        t0 = dt.datetime.now()
+        pool = mp.Pool(processes=self.proc_num)
+        for (fast, slow, alpha) in ittl.product(self.fasts, self.slows, self.alphas):
+            transformer = CFactorsMACD(fast, slow, alpha, self.ewm_bgn_date, **kwargs)
+            pool.apply_async(transformer.core, args=(self.run_mode, self.bgn_date, self.stp_date))
+        pool.close()
+        pool.join()
+        t1 = dt.datetime.now()
+        print(f"... raw factor {SetFontGreen('MACD')} generated")
+        print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
+        return 0
+
+
+class CMpFactorKDJ(object):
+    def __init__(self, proc_num: int, ns: tuple[int], ewm_bgn_date: str,
+                 run_mode: str, bgn_date: str, stp_date: str):
+        self.proc_num = proc_num
+        self.ns = ns
+        self.ewm_bgn_date = ewm_bgn_date
+        self.run_mode = run_mode
+        self.bgn_date = bgn_date
+        self.stp_date = stp_date
+
+    def mp_cal_factor(self, **kwargs):
+        t0 = dt.datetime.now()
+        pool = mp.Pool(processes=self.proc_num)
+        for n in self.ns:
+            transformer = CFactorsKDJ(n, self.ewm_bgn_date, **kwargs)
+            pool.apply_async(transformer.core, args=(self.run_mode, self.bgn_date, self.stp_date))
+        pool.close()
+        pool.join()
+        t1 = dt.datetime.now()
+        print(f"... raw factor {SetFontGreen('KDJ')} generated")
+        print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
+        return 0
+
+
+class CMpFactorRSI(object):
+    def __init__(self, proc_num: int, ns: tuple[int], ewm_bgn_date: str,
+                 run_mode: str, bgn_date: str, stp_date: str):
+        self.proc_num = proc_num
+        self.ns = ns
+        self.ewm_bgn_date = ewm_bgn_date
+        self.run_mode = run_mode
+        self.bgn_date = bgn_date
+        self.stp_date = stp_date
+
+    def mp_cal_factor(self, **kwargs):
+        t0 = dt.datetime.now()
+        pool = mp.Pool(processes=self.proc_num)
+        for n in self.ns:
+            transformer = CFactorsRSI(n, self.ewm_bgn_date, **kwargs)
+            pool.apply_async(transformer.core, args=(self.run_mode, self.bgn_date, self.stp_date))
+        pool.close()
+        pool.join()
+        t1 = dt.datetime.now()
+        print(f"... raw factor {SetFontGreen('RSI')} generated")
         print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
         return 0

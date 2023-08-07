@@ -39,8 +39,8 @@ factors_settings = {
     "IBETA": {"": wins_long_term, "LD": wins_lag},
 
     "MACD": {"F": (10,), "S": (21,), "ALPHA": (0.2,)},
-    "KDJ": {"N": (10,)},
-    "RSI": {"N": (10,)},
+    "KDJ": {"N": (10, 20)},
+    "RSI": {"N": (10, 20)},
 }
 
 factors_mtm = ["MTM"] + list(itertools.chain(*[[f"MTM{k}{_:03d}" for _ in v] for k, v in factors_settings["MTM"].items()]))
