@@ -161,5 +161,5 @@ database_structure.update({
                                                  [neutral_method], test_windows, factors_return_lags)]})
 
 if __name__ == "__main__":
-    print(norm_factors_pool_list)
-    print(database_structure["P3.WS.NORM"].m_tab.m_value_columns)
+    with open("E:\\tmp\\ds.json", "w+") as f:
+        f.write(str(database_structure))

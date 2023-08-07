@@ -76,7 +76,7 @@ factors_rsi = [f"RSI{n:03d}" for n in factors_settings["RSI"]["N"]]
 factors = factors_mtm + factors_size + factors_oi + factors_rs + \
           factors_basis + factors_ts + factors_liquid + factors_sr + factors_hr + \
           factors_netoi + factors_netoiw + factors_netdoi + factors_netdoiw + \
-          factors_skew + factors_vol + factors_cv + factors_rvol + \
+          factors_skew + factors_vol + factors_rvol + factors_cv + \
           factors_ctp + factors_cvp + factors_csp + factors_beta + \
           factors_val + factors_cbeta + factors_ibeta + \
           factors_macd + factors_kdj + factors_rsi

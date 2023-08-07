@@ -45,14 +45,14 @@ from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_ra
                          simulations_opt_dir, evaluations_opt_dir, by_year_dir, simu_positions_and_trades_dir,
                          calendar_path, instrument_info_path)
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification, sectors,
-                            available_universe_options, test_windows, neutral_method,
+                            available_universe_options, neutral_method,
                             factors_pool_options, factors_return_lags)
 from config_factor import factors_settings
-from config_portfolio import (available_factors, timing_factors,
-                              pid, factors_return_lag, fast_n_slow_n_comb, raw_portfolio_options, pure_portfolio_options,
-                              minimum_abs_weight, test_signals,
-                              selected_sectors, selected_factors,
-                              cost_rate, cost_reservation, init_premium, risk_free_rate)
+# from config_portfolio import (available_factors, timing_factors,
+#                               pid, factors_return_lag, fast_n_slow_n_comb, raw_portfolio_options, pure_portfolio_options,
+#                               minimum_abs_weight, test_signals,
+#                               selected_sectors, selected_factors,
+#                               cost_rate, cost_reservation, init_premium, risk_free_rate)
 from struct_lib_portfolio import database_structure
 from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     switch = args.switch.upper()
     if switch in ["ICS", "ICNS", "ICDS", "ICC", "FECOR", "SIMU", "EVAL", "BY", "POS"]:
         run_mode = None
-    elif switch in ["MR"]:
+    elif switch in ["IR", "MR"]:
         run_mode = "O"
     else:
         run_mode = args.mode.upper()
