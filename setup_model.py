@@ -85,6 +85,7 @@ instruments_residual_dir = os.path.join(factors_library_dir, "instruments_residu
 factors_exposure_corr_dir = os.path.join(factors_library_dir, "factors_exposure_corr")
 ic_tests_dir = os.path.join(factors_library_dir, "ic_tests")
 ic_tests_delinear_dir = os.path.join(factors_library_dir, "ic_tests_delinear")
+ic_tests_summary_dir = os.path.join(factors_library_dir, "ic_tests_summary")
 
 # portfolio
 signals_dir = os.path.join(portfolio_dir, "signals")
@@ -115,6 +116,7 @@ if __name__ == "__main__":
     check_and_mkdir(factors_exposure_corr_dir)
     check_and_mkdir(ic_tests_dir)
     check_and_mkdir(ic_tests_delinear_dir)
+    check_and_mkdir(ic_tests_summary_dir)
 
     check_and_mkdir(portfolio_dir)
     check_and_mkdir(signals_dir)

@@ -81,9 +81,76 @@ factors = factors_mtm + factors_size + factors_oi + factors_rs + \
           factors_val + factors_cbeta + factors_ibeta + \
           factors_macd + factors_kdj + factors_rsi
 
+factors_classification = {
+    **{_: "MTM" for _ in factors_mtm},
+    **{_: "SIZE" for _ in factors_size},
+    **{_: "OI" for _ in factors_oi},
+    **{_: "RS" for _ in factors_rs},
+    **{_: "BASIS" for _ in factors_basis},
+    **{_: "TS" for _ in factors_ts},
+    **{_: "LIQUID" for _ in factors_liquid},
+    **{_: "SR" for _ in factors_sr},
+    **{_: "HR" for _ in factors_hr},
+    **{_: "NETOI" for _ in factors_netoi},
+    **{_: "NETOIW" for _ in factors_netoiw},
+    **{_: "NETDOI" for _ in factors_netdoi},
+    **{_: "NETDOIW" for _ in factors_netdoiw},
+    **{_: "SKEW" for _ in factors_skew},
+    **{_: "VOL" for _ in factors_vol},
+    **{_: "RVOL" for _ in factors_rvol},
+    **{_: "CV" for _ in factors_cv},
+    **{_: "CTP" for _ in factors_ctp},
+    **{_: "CVP" for _ in factors_cvp},
+    **{_: "CSP" for _ in factors_csp},
+    **{_: "BETA" for _ in factors_beta},
+    **{_: "VAL" for _ in factors_val},
+    **{_: "CBETA" for _ in factors_cbeta},
+    **{_: "IBETA" for _ in factors_ibeta},
+    **{_: "MACD" for _ in factors_macd},
+    **{_: "KDJ" for _ in factors_kdj},
+    **{_: "RSI" for _ in factors_rsi},
+}
+
+factors_group = {
+    "MTM": factors_mtm,
+    "SIZE": factors_size,
+    "OI": factors_oi,
+    "RS": factors_rs,
+    "BASIS": factors_basis,
+    "TS": factors_ts,
+    "LIQUID": factors_liquid,
+    "SR": factors_sr,
+    "HR": factors_hr,
+    "NETOI": factors_netoi,
+    "NETOIW": factors_netoiw,
+    "NETDOI": factors_netdoi,
+    "NETDOIW": factors_netdoiw,
+    "SKEW": factors_skew,
+    "VOL": factors_vol,
+    "RVOL": factors_rvol,
+    "CV": factors_cv,
+    "CTP": factors_ctp,
+    "CVP": factors_cvp,
+    "CSP": factors_csp,
+    "BETA": factors_beta,
+    "VAL": factors_val,
+    "CBETA": factors_cbeta,
+    "IBETA": factors_ibeta,
+    "MACD": factors_macd,
+    "KDJ": factors_kdj,
+    "RSI": factors_rsi,
+}
+
 factors_list_size = len(factors)
 factors_neutral = ["{}_WS".format(_) for _ in factors]
 
 if __name__ == "__main__":
-    print("\n".join(factors))
-    print("Total number of factors = {}".format(len(factors)))  # 346
+    s = 0
+    for g, fs in factors_group.items():
+        print(f"number of {g:>8s} = {len(fs):>3d}")
+        s += len(fs)
+    print(f"      number of factors group          = {len(factors_group):>3d}")
+    print(f"Sum   number of factors group          = {s:>3d}")
+    print(f"Total number of factors classification = {len(factors_classification):>3d}")
+    print(f"Total number of factors                = {len(factors):>3d}")
+    # the last three number should be 410

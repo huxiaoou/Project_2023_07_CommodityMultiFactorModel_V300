@@ -24,12 +24,12 @@ from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_ra
                          factors_exposure_norm_dir, factors_exposure_delinear_dir,
                          factors_return_dir, factors_portfolio_dir, instruments_residual_dir,
                          signals_dir, signals_allocation_dir, signals_opt_dir,
-                         ic_tests_dir, ic_tests_delinear_dir, factors_exposure_corr_dir,
+                         ic_tests_dir, ic_tests_summary_dir, ic_tests_delinear_dir, factors_exposure_corr_dir,
                          simulations_opt_dir, evaluations_opt_dir, by_year_dir, simu_positions_and_trades_dir,
                          calendar_path, instrument_info_path)
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification, sectors,
                             available_universe_options, neutral_method, test_windows, factors_pool_options, factors_return_lags)
-from config_factor import factors_settings, factors
+from config_factor import factors_settings, factors, factors_classification, factors_group
 from struct_lib_portfolio import database_structure
 from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     else:
         run_mode = args.mode.upper()
     bgn_date, stp_date = (bgn_dates_in_overwrite_mod[switch] if run_mode in ["O"] else args.bgn), args.stp
-    if stp_date is None:
+    if (stp_date is None) and (bgn_date is not None):
         stp_date = (dt.datetime.strptime(bgn_date, "%Y%m%d") + dt.timedelta(days=1)).strftime("%Y%m%d")
     proc_num = args.process
     factor = args.factor.upper() if switch in ["FE"] else None
@@ -536,7 +536,6 @@ if __name__ == "__main__":
             run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
             neutral_method=neutral_method,
         )
-
     elif switch in ["ICD"]:
         from ic_tests.ic_tests_factors_delinear import cal_ic_tests_delinear_mp
 
@@ -552,23 +551,27 @@ if __name__ == "__main__":
             database_structure=database_structure,
         )
     elif switch in ["ICS"]:
-        from ic_tests.ic_tests_summary import cal_ic_tests_summary_mp
+        from ic_tests.ic_tests_cls_summary import CICTestsSummaryRaw
 
-        cal_ic_tests_summary_mp(
-            proc_num=proc_num, factors=factors,
-            test_windows=test_windows,
-            ic_tests_dir=ic_tests_dir,
-            database_structure=database_structure,
+        agent_summary = CICTestsSummaryRaw(
+            proc_num=proc_num, ic_tests_dir=ic_tests_dir,
+            ic_tests_summary_dir=ic_tests_summary_dir,
+            database_structure=database_structure
         )
+        agent_summary.get_summary_mp(factors, factors_classification)
+        agent_summary.get_cumsum_mp(factors_group)
     elif switch in ["ICNS"]:
-        from ic_tests.ic_tests_summary_neutral import cal_ic_tests_neutral_summary_mp
+        from ic_tests.ic_tests_cls_summary import CICTestsSummaryNeutral
 
-        cal_ic_tests_neutral_summary_mp(
-            proc_num=proc_num, factors=factors, neutral_methods=[neutral_method],
-            test_windows=test_windows,
-            ic_tests_dir=ic_tests_dir,
-            database_structure=database_structure,
+        agent_summary = CICTestsSummaryNeutral(
+            neutral_method=neutral_method,
+            proc_num=proc_num, ic_tests_dir=ic_tests_dir,
+            ic_tests_summary_dir=ic_tests_summary_dir,
+            database_structure=database_structure
         )
+        agent_summary.get_summary_mp(factors, factors_classification)
+        agent_summary.get_cumsum_mp(factors_group)
+
     elif switch in ["ICDS"]:
         from ic_tests.ic_tests_summary_delinear import cal_ic_tests_delinear_summary_mp
 
