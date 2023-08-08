@@ -1,7 +1,7 @@
 import itertools as ittl
 from skyrim.falkreath import CLib1Tab1, CTable
 from config_project import factors_pool_options, sector_classification, concerned_instruments_universe
-from config_project import test_windows, factors_return_lags, neutral_method, sectors
+from config_project import test_windows, factors_return_lags, sectors
 from config_factor import factors, factors_neutral
 
 # --- DATABASE STRUCTURE
@@ -136,7 +136,7 @@ database_structure.update({
             "primary_keys": {"trade_date": "TEXT"},
             "value_columns": {"value": "REAL"},
         })
-    ) for z in [f"ic-{f}-TW{tw:03d}" for f, tw in ittl.product(factors, test_windows)]})
+    ) for z in [f"ic-{f}" for f in factors]})
 
 database_structure.update({
     z: CLib1Tab1(
@@ -146,7 +146,7 @@ database_structure.update({
             "primary_keys": {"trade_date": "TEXT"},
             "value_columns": {"value": "REAL"},
         })
-    ) for z in [f"ic-{f}-{nm}-TW{tw:03d}" for f, nm, tw in ittl.product(factors, [neutral_method], test_windows)]})
+    ) for z in [f"ic-{f}" for f in factors_neutral]})
 
 database_structure.update({
     z: CLib1Tab1(
@@ -156,9 +156,8 @@ database_structure.update({
             "primary_keys": {"trade_date": "TEXT", "factor": "TEXT"},
             "value_columns": {"value": "REAL"},
         })
-    ) for z in [f"ic-delinear-{p}-{nm}-TW{tw:03d}-T{l}"
-                for p, nm, tw, l in ittl.product(factors_pool_options,
-                                                 [neutral_method], test_windows, factors_return_lags)]})
+    ) for z in [f"ic-delinear-{p}-T{l}"
+                for p, l in ittl.product(factors_pool_options, factors_return_lags)]})
 
 if __name__ == "__main__":
     with open("E:\\tmp\\ds.json", "w+") as f:

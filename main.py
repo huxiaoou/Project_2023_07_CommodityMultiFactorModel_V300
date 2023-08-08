@@ -8,13 +8,6 @@ import datetime as dt
 # from signals.signals_portfolio_allocation_raw import cal_signals_raw_mp
 # from signals.signals_portfolio_allocation_pure import cal_signals_pure_mp
 # from signals.signals_opt_mov_ave import cal_signals_opt_vanilla_mp, cal_signals_opt_ma_mp, cal_signals_opt_raw_and_pure_mp
-# from ic_tests.ic_tests_factors import cal_ic_tests_mp
-# from ic_tests.ic_tests_factors_neutral import cal_ic_tests_neutral_mp
-# from ic_tests.ic_tests_factors_delinear import cal_ic_tests_delinear_mp
-# from ic_tests.ic_tests_summary import cal_ic_tests_summary_mp
-# from ic_tests.ic_tests_summary_neutral import cal_ic_tests_neutral_summary_mp
-# from ic_tests.ic_tests_summary_delinear import cal_ic_tests_delinear_summary_mp
-# from ic_tests.ic_tests_comparison import cal_ic_tests_comparison
 # from ic_tests.factors_exposure_corr import cal_factors_exposure_corr
 # from simulations.simulation import cal_simulations_mp
 # from simulations.evaluation import cal_evaluation_signals_mp
@@ -28,11 +21,11 @@ from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_ra
                          instruments_return_dir, available_universe_dir,
                          test_return_dir, test_return_neutral_dir,
                          factors_exposure_dir, factors_exposure_neutral_dir,
-    # factors_exposure_norm_dir, factors_exposure_delinear_dir,
-    # factors_return_dir, factors_portfolio_dir, instruments_residual_dir,
-    # signals_dir, signals_allocation_dir, signals_opt_dir,
-    # ic_tests_dir, ic_tests_delinear_dir, factors_exposure_corr_dir,
-    # simulations_opt_dir, evaluations_opt_dir, by_year_dir, simu_positions_and_trades_dir,
+                         factors_exposure_norm_dir, factors_exposure_delinear_dir,
+                         factors_return_dir, factors_portfolio_dir, instruments_residual_dir,
+                         signals_dir, signals_allocation_dir, signals_opt_dir,
+                         ic_tests_dir, ic_tests_delinear_dir, factors_exposure_corr_dir,
+                         simulations_opt_dir, evaluations_opt_dir, by_year_dir, simu_positions_and_trades_dir,
                          calendar_path, instrument_info_path)
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification, sectors,
                             available_universe_options, neutral_method, test_windows, factors_pool_options, factors_return_lags)
@@ -517,69 +510,82 @@ if __name__ == "__main__":
     #         calendar_path=calendar_path,
     #         database_structure=database_structure,
     #     )
-    # elif switch in ["IC"]:
-    #     cal_ic_tests_mp(
-    #         proc_num=proc_num,
-    #         factors=factors, test_windows=test_windows,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         ic_tests_dir=ic_tests_dir,
-    #         available_universe_dir=available_universe_dir,
-    #         exposure_dir=factors_exposure_dir,
-    #         return_dir=test_return_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["ICN"]:
-    #     cal_ic_tests_neutral_mp(
-    #         proc_num=proc_num,
-    #         factors=factors, neutral_methods=[neutral_method], test_windows=test_windows,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         ic_tests_dir=ic_tests_dir,
-    #         available_universe_dir=available_universe_dir,
-    #         exposure_dir=factors_exposure_neutral_dir,
-    #         return_dir=test_return_neutral_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["ICD"]:
-    #     cal_ic_tests_delinear_mp(
-    #         proc_num=proc_num,
-    #         pids=[pid], factors_pool_options=factors_pool_options,
-    #         neutral_methods=[neutral_method], test_windows=test_windows, factors_return_lags=[0],
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         ic_tests_delinear_dir=ic_tests_delinear_dir,
-    #         exposure_dir=factors_exposure_delinear_dir,
-    #         return_dir=test_return_neutral_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["ICS"]:
-    #     cal_ic_tests_summary_mp(
-    #         proc_num=proc_num, factors=factors,
-    #         test_windows=test_windows,
-    #         ic_tests_dir=ic_tests_dir,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["ICNS"]:
-    #     cal_ic_tests_neutral_summary_mp(
-    #         proc_num=proc_num, factors=factors, neutral_methods=[neutral_method],
-    #         test_windows=test_windows,
-    #         ic_tests_dir=ic_tests_dir,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["ICDS"]:
-    #     cal_ic_tests_delinear_summary_mp(
-    #         proc_num=proc_num,
-    #         pids=[pid], factors_pool_options=factors_pool_options,
-    #         neutral_methods=[neutral_method], test_windows=test_windows, factors_return_lags=[0],
-    #         ic_tests_delinear_dir=ic_tests_delinear_dir,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["ICC"]:
-    #     cal_ic_tests_comparison(
-    #         factors=factors, neutral_method=neutral_method, exception_list=[],
-    #         ic_tests_dir=ic_tests_dir, top_n=12
-    #     )
+    elif switch in ["IC"]:
+        from ic_tests.ic_tests_cls import cal_ic_tests_mp
+
+        cal_ic_tests_mp(
+            proc_num=proc_num, factors=factors,
+            ic_tests_dir=ic_tests_dir,
+            available_universe_dir=available_universe_dir,
+            exposure_dir=factors_exposure_dir,
+            test_return_dir=test_return_dir,
+            database_structure=database_structure, calendar=calendar,
+            run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
+            neutral_method="",
+        )
+    elif switch in ["ICN"]:
+        from ic_tests.ic_tests_cls import cal_ic_tests_mp
+
+        cal_ic_tests_mp(
+            proc_num=proc_num, factors=factors,
+            ic_tests_dir=ic_tests_dir,
+            available_universe_dir=available_universe_dir,
+            exposure_dir=factors_exposure_neutral_dir,
+            test_return_dir=test_return_neutral_dir,
+            database_structure=database_structure, calendar=calendar,
+            run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
+            neutral_method=neutral_method,
+        )
+
+    elif switch in ["ICD"]:
+        from ic_tests.ic_tests_factors_delinear import cal_ic_tests_delinear_mp
+
+        cal_ic_tests_delinear_mp(
+            proc_num=proc_num,
+            pids=[pid], factors_pool_options=factors_pool_options,
+            neutral_methods=[neutral_method], test_windows=test_windows, factors_return_lags=[0],
+            run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
+            ic_tests_delinear_dir=ic_tests_delinear_dir,
+            exposure_dir=factors_exposure_delinear_dir,
+            return_dir=test_return_neutral_dir,
+            calendar_path=calendar_path,
+            database_structure=database_structure,
+        )
+    elif switch in ["ICS"]:
+        from ic_tests.ic_tests_summary import cal_ic_tests_summary_mp
+
+        cal_ic_tests_summary_mp(
+            proc_num=proc_num, factors=factors,
+            test_windows=test_windows,
+            ic_tests_dir=ic_tests_dir,
+            database_structure=database_structure,
+        )
+    elif switch in ["ICNS"]:
+        from ic_tests.ic_tests_summary_neutral import cal_ic_tests_neutral_summary_mp
+
+        cal_ic_tests_neutral_summary_mp(
+            proc_num=proc_num, factors=factors, neutral_methods=[neutral_method],
+            test_windows=test_windows,
+            ic_tests_dir=ic_tests_dir,
+            database_structure=database_structure,
+        )
+    elif switch in ["ICDS"]:
+        from ic_tests.ic_tests_summary_delinear import cal_ic_tests_delinear_summary_mp
+
+        cal_ic_tests_delinear_summary_mp(
+            proc_num=proc_num,
+            pids=[pid], factors_pool_options=factors_pool_options,
+            neutral_methods=[neutral_method], test_windows=test_windows, factors_return_lags=[0],
+            ic_tests_delinear_dir=ic_tests_delinear_dir,
+            database_structure=database_structure,
+        )
+    elif switch in ["ICC"]:
+        from ic_tests.ic_tests_comparison import cal_ic_tests_comparison
+
+        cal_ic_tests_comparison(
+            factors=factors, neutral_method=neutral_method, exception_list=[],
+            ic_tests_dir=ic_tests_dir, top_n=12
+        )
     # elif switch in ["FECOR"]:
     #     test_factor_list_l, test_factor_list_r = ["MTM231", "TS126"], []
     #     cal_factors_exposure_corr(
