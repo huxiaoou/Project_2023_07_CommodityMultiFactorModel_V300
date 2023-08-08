@@ -2,9 +2,13 @@ import itertools
 import datetime as dt
 import multiprocessing as mp
 import pandas as pd
-from ic_tests.ic_tests_shared import corr_one_day_delinear
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriter
 from skyrim.whiterun import CCalendar
+
+
+def corr_one_day_delinear(df: pd.DataFrame, xs: list[str], y: str, method: str):
+    res = df[xs].corrwith(df[y], axis=0, method=method)
+    return res
 
 
 def ic_test_delinear(pid: str, selected_factors_pool: list[str],
