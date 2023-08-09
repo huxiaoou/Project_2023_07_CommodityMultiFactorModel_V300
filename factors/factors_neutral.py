@@ -62,13 +62,14 @@ def neutralize_one_factor(src_factor: str,
         available_universe_lib.close()
 
         input_df = pd.merge(left=factor_df, right=weight_df, on=["trade_date", "instrument"], how="inner")
+        input_df.dropna(axis=0, subset=["value"], inplace=True)
         res_agg = input_df.groupby(by="trade_date", group_keys=True).apply(
             neutralize_one_factor_one_day, mother_df=mother_universe_df,
             neutral_method=neutral_method, weight_id=__weight_id, sector_df=sector_df,
         )
 
         # type of res_agg may vary according to the result:
-        # if length of each day is the same, it will be a DataFrame(this happens when only a few days are calculated)
+        # if length of each day(i.e. number of instruments) is the same, it will be a DataFrame(this happens when only a few days are calculated)
         # otherwise it would be a DataFrame(this happens when all days in history are calculated)
         if type(res_agg) == pd.Series:
             update_df = res_agg.reset_index()

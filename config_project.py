@@ -144,6 +144,7 @@ factors_pool_options = {
            "SKEW010", "MTM231", "TS126", "RSW252HL063",
            "SIZE252", "TO252", "BETA021"],
 }
+selected_pool = factors_pool_options["P3"]
 
 # neutral methods
 neutral_method = "WS"

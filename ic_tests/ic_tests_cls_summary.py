@@ -2,7 +2,6 @@ import os
 import datetime as dt
 import multiprocessing as mp
 import sqlite3
-
 import numpy as np
 import pandas as pd
 from skyrim.whiterun import SetFontGreen
@@ -33,7 +32,7 @@ class CICTestsSummary(object):
 
     def __get_ic_test_data(self, factor: str) -> pd.DataFrame:
         ic_test_lib_structure = self.database_structure[self._get_src_lib_id(factor)]
-        ic_test_lib = CManagerLibReader(t_db_name=ic_test_lib_structure.m_lib_name, t_db_save_dir=os.path.join(self.ic_tests_dir, factor))
+        ic_test_lib = CManagerLibReader(t_db_name=ic_test_lib_structure.m_lib_name, t_db_save_dir=self.ic_tests_dir)
         ic_test_lib.set_default(ic_test_lib_structure.m_tab.m_table_name)
         ic_df = ic_test_lib.read(t_value_columns=["trade_date", "value"]).set_index("trade_date")
         ic_test_lib.close()
@@ -148,7 +147,7 @@ class CICTestsSummaryNeutral(CICTestsSummary):
         return f"ic-{factor}_{self.neutral_method}"
 
     def _get_summary_file_id(self) -> str:
-        return f"ic_statistics-{self.neutral_method}"
+        return f"ic_statistics_{self.neutral_method}"
 
     def _get_cumsum_file_id(self, factor_class):
-        return f"ic_cumsum-{self.neutral_method}-{factor_class}"
+        return f"ic_cumsum_{self.neutral_method}-{factor_class}"

@@ -1,10 +1,8 @@
-import os
 import datetime as dt
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
 from skyrim.whiterun import CCalendar, SetFontGreen
-from skyrim.winterhold import check_and_mkdir
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriter
 
 
@@ -15,13 +13,11 @@ class CICTests(object):
                  calendar: CCalendar,
                  ):
         self.factor = factor
-        self.ic_tests_dir = ic_tests_dir
         self.available_universe_dir = available_universe_dir
 
         self.database_structure = database_structure
         self.calendar = calendar
-        self.dst_dir = os.path.join(self.ic_tests_dir, self.factor)
-        check_and_mkdir(self.dst_dir)
+        self.dst_dir = ic_tests_dir
 
         self.src_factor_exposure_lib_id = ""
         self.src_test_return_lib_id = ""
@@ -32,10 +28,7 @@ class CICTests(object):
 
     @staticmethod
     def corr_one_day(df: pd.DataFrame, x: str, y: str, method: str):
-        if len(df) > 2:
-            res = df[[x, y]].corr(method=method).at[x, y]
-        else:
-            res = 0
+        res = df[[x, y]].corr(method=method).at[x, y] if len(df) > 2 else 0
         return 0 if np.isnan(res) else res
 
     def set_id(self):

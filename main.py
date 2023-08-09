@@ -1,18 +1,9 @@
 import argparse
 import pandas as pd
 import datetime as dt
-# from factors.factors_normalize_delinear import cal_factors_normalize_and_delinear_mp
-# from factors.factors_return import cal_factors_return_mp
-# from signals.signals_pure_factors_VANILLA import cal_signals_vanilla_mp
-# from signals.signals_pure_factors_MA import cal_signals_ma_mp
-# from signals.signals_portfolio_allocation_raw import cal_signals_raw_mp
-# from signals.signals_portfolio_allocation_pure import cal_signals_pure_mp
-# from signals.signals_opt_mov_ave import cal_signals_opt_vanilla_mp, cal_signals_opt_ma_mp, cal_signals_opt_raw_and_pure_mp
-# from ic_tests.factors_exposure_corr import cal_factors_exposure_corr
-# from simulations.simulation import cal_simulations_mp
-# from simulations.evaluation import cal_evaluation_signals_mp
-# from simulations.evaluation_by_year import evaluate_signal_by_year, plot_signals_nav_by_year
-# from simulations.evaluation_positions_and_trades import cal_positions_and_trades_mp
+from factors.factors_normalize_delinear import cal_factors_normalize_and_delinear_mp
+from factors.factors_return import cal_factors_return_mp
+from ic_tests.factors_exposure_corr import cal_factors_exposure_corr
 
 from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_rate_file,
                          futures_by_instrument_dir, major_return_db_name, major_minor_db_name,
@@ -28,16 +19,16 @@ from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_ra
                          simulations_opt_dir, evaluations_opt_dir, by_year_dir, simu_positions_and_trades_dir,
                          calendar_path, instrument_info_path)
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification, sectors,
-                            available_universe_options, neutral_method, test_windows, factors_pool_options, factors_return_lags)
-from config_factor import factors_settings, factors, factors_classification, factors_group
+                            available_universe_options, neutral_method, test_windows, factors_pool_options, factors_return_lags, selected_pool)
+from config_factor import factors_settings, factors, factors_classification, factors_group, factors_basis
 from struct_lib_portfolio import database_structure
 from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
-# from config_portfolio import (available_factors, timing_factors,
-#                               pid, factors_return_lag, fast_n_slow_n_comb, raw_portfolio_options, pure_portfolio_options,
-#                               minimum_abs_weight, test_signals,
-#                               selected_sectors, selected_factors,
-#                               cost_rate, cost_reservation, init_premium, risk_free_rate)
+from config_portfolio import (available_factors, timing_factors,
+                              pid, factors_return_lag,
+                              minimum_abs_weight,
+                              selected_sectors, selected_factors,
+                              cost_rate, cost_reservation, init_premium, risk_free_rate)
 
 if __name__ == "__main__":
     args_parser = argparse.ArgumentParser(description="Entry point of this project", formatter_class=argparse.RawTextHelpFormatter)
@@ -427,89 +418,6 @@ if __name__ == "__main__":
     #         calendar_path=calendar_path,
     #         database_structure=database_structure,
     #     )
-    # elif switch in ["SIGV"]:
-    #     cal_signals_vanilla_mp(
-    #         proc_num=proc_num,
-    #         test_windows=test_windows, pids=[pid], neutral_methods=[neutral_method], factors_return_lags=[factors_return_lag],
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         src_factors=available_factors,
-    #         factors_portfolio_dir=factors_portfolio_dir,
-    #         signals_dir=signals_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["SIGM"]:
-    #     cal_signals_ma_mp(
-    #         proc_num=proc_num,
-    #         test_windows=test_windows, pids=[pid], neutral_methods=[neutral_method], factors_return_lags=[factors_return_lag],
-    #         fast_n_slow_n_comb=fast_n_slow_n_comb,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         src_factors=timing_factors,
-    #         factors_return_dir=factors_return_dir,
-    #         factors_portfolio_dir=factors_portfolio_dir,
-    #         signals_dir=signals_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["SIGAR"]:
-    #     cal_signals_raw_mp(
-    #         proc_num=proc_num,
-    #         raw_portfolio_ids=list(raw_portfolio_options), raw_portfolio_options=raw_portfolio_options,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         test_universe=concerned_instruments_universe,
-    #         available_universe_dir=available_universe_dir,
-    #         factors_exposure_dir=factors_exposure_dir,
-    #         signals_allocation_dir=signals_allocation_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["SIGAP"]:
-    #     cal_signals_pure_mp(
-    #         proc_num=proc_num,
-    #         pure_portfolio_ids=list(pure_portfolio_options), pure_portfolio_options=pure_portfolio_options,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         signals_dir=signals_dir,
-    #         signals_allocation_dir=signals_allocation_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["OPTV"]:
-    #     cal_signals_opt_vanilla_mp(
-    #         proc_num=proc_num,
-    #         factors=available_factors,
-    #         mov_ave_lens=test_windows,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         minimum_abs_weight=minimum_abs_weight,
-    #         src_dir=signals_dir,
-    #         signals_opt_dir=signals_opt_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["OPTM"]:
-    #     cal_signals_opt_ma_mp(
-    #         proc_num=proc_num,
-    #         factors=timing_factors,
-    #         mov_ave_lens=test_windows,
-    #         fast_n_slow_n_comb=fast_n_slow_n_comb,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         minimum_abs_weight=minimum_abs_weight,
-    #         src_dir=signals_dir,
-    #         signals_opt_dir=signals_opt_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["OPT"]:
-    #     cal_signals_opt_raw_and_pure_mp(
-    #         proc_num=proc_num,
-    #         portfolio_ids=list(raw_portfolio_options) + list(pure_portfolio_options),
-    #         mov_ave_lens=test_windows,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         minimum_abs_weight=minimum_abs_weight,
-    #         src_dir=signals_allocation_dir,
-    #         signals_opt_dir=signals_opt_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
     elif switch in ["IC"]:
         from ic_tests.ic_tests_cls import cal_ic_tests_mp
 
@@ -589,91 +497,6 @@ if __name__ == "__main__":
             factors=factors, neutral_method=neutral_method, exception_list=[],
             ic_tests_dir=ic_tests_dir, top_n=12
         )
-    # elif switch in ["FECOR"]:
-    #     test_factor_list_l, test_factor_list_r = ["MTM231", "TS126"], []
-    #     cal_factors_exposure_corr(
-    #         neutral_method=neutral_method,
-    #         test_factor_list_l=test_factor_list_l, test_factor_list_r=test_factor_list_r,
-    #         bgn_date=bgn_date, stp_date=stp_date,
-    #         factors_exposure_dir=factors_exposure_dir,
-    #         factors_exposure_neutral_dir=factors_exposure_neutral_dir,
-    #         factors_exposure_corr_dir=factors_exposure_corr_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["SIMU"]:
-    #     if signals_type == "V":
-    #         signal_ids = test_signals["vanilla"]
-    #     elif signals_type == "M":
-    #         signal_ids = test_signals["ma"]
-    #     elif signals_type == "A":
-    #         signal_ids = test_signals["allocation"]
-    #     else:
-    #         signal_ids = []
-    #     cal_simulations_mp(
-    #         proc_num=proc_num,
-    #         signal_ids=signal_ids, test_windows=[1],
-    #         calendar_path=calendar_path, instrument_info_path=instrument_info_path,
-    #         md_by_instru_dir=md_by_instru_dir, major_minor_dir=major_minor_dir,
-    #         available_universe_dir=available_universe_dir,
-    #         sig_dir=signals_opt_dir, dst_dir=simulations_opt_dir,
-    #         database_structure=database_structure,
-    #         test_universe=concerned_instruments_universe, test_bgn_date=bgn_date, test_stp_date=stp_date,
-    #         cost_reservation=cost_reservation, cost_rate=cost_rate, init_premium=init_premium,
-    #         skip_if_exist=False
-    #     )
-    # elif switch in ["EVAL"]:
-    #     if signals_type == "V":
-    #         signal_ids = test_signals["vanilla"]
-    #     elif signals_type == "M":
-    #         signal_ids = test_signals["ma"]
-    #     elif signals_type == "A":
-    #         signal_ids = test_signals["allocation"]
-    #     else:
-    #         signal_ids = []
-    #     cal_evaluation_signals_mp(
-    #         proc_num=proc_num,
-    #         signal_ids=signal_ids,
-    #         hold_period_n_list=[1], bgn_date=bgn_date, stp_date=stp_date,
-    #         risk_free_rate=risk_free_rate,
-    #         src_simulations_dir=simulations_opt_dir,
-    #         dst_evaluations_dir=evaluations_opt_dir,
-    #         top_n=5, verbose=False,
-    #     )
-    # elif switch in ["BY"]:
-    #     evaluate_signal_by_year("R1M010", 1, risk_free_rate, evaluations_opt_dir, by_year_dir)
-    #     evaluate_signal_by_year("R4M010", 1, risk_free_rate, evaluations_opt_dir, by_year_dir)
-    #     evaluate_signal_by_year("A1M020", 1, risk_free_rate, evaluations_opt_dir, by_year_dir)
-    #     evaluate_signal_by_year("A6M005", 1, risk_free_rate, evaluations_opt_dir, by_year_dir)
-    #     evaluate_signal_by_year("A3M020", 1, risk_free_rate, evaluations_opt_dir, by_year_dir)
-    #     evaluate_signal_by_year("A8M005", 1, risk_free_rate, evaluations_opt_dir, by_year_dir)
-    #     tracking_sigal_ids = [
-    #         "R1M010",
-    #         "R4M010",
-    #         "A1M020",
-    #         "A6M005",
-    #         "A3M020",
-    #         "A8M005",
-    #     ]
-    #     plot_signals_nav_by_year("comb", [(z, 1) for z in tracking_sigal_ids], evaluations_opt_dir, by_year_dir)
-    #     plot_signals_nav_by_year("comb_sector_VM005", [(z + "VM005", 1) for z in ["MARKET"] + selected_sectors], evaluations_opt_dir, by_year_dir)
-    #     plot_signals_nav_by_year("comb_sector_VM020", [(z + "VM020", 1) for z in ["MARKET"] + selected_sectors], evaluations_opt_dir, by_year_dir)
-    #     plot_signals_nav_by_year("comb_style_VM005", [(z + "VM005", 1) for z in selected_factors], evaluations_opt_dir, by_year_dir)
-    #     plot_signals_nav_by_year("comb_style_VM020", [(z + "VM020", 1) for z in selected_factors], evaluations_opt_dir, by_year_dir)
-    # elif switch in ["POS"]:
-    #     cal_positions_and_trades_mp(
-    #         proc_num=proc_num,
-    #         sids=["R1M010", "R4M010", "A1M020", "A6M005", "A3M020", "A8M005"],
-    #         exe_date=exe_date,
-    #         init_premium=init_premium,
-    #         instruments_universe=concerned_instruments_universe,
-    #         signals_opt_dir=signals_opt_dir,
-    #         md_by_instru_dir=md_by_instru_dir,
-    #         major_minor_dir=major_minor_dir,
-    #         simu_positions_and_trades_dir=simu_positions_and_trades_dir,
-    #         calendar_path=calendar_path,
-    #         instru_info_tab_path=instrument_info_path,
-    #         database_structure=database_structure,
-    #     )
+
     else:
         print(f"... switch = {switch} is not a legal option, please check again.")
