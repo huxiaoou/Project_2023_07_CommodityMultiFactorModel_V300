@@ -70,8 +70,8 @@ class CFactorsTransformer(CFactors):
         pivot_df = pd.pivot_table(data=src_df, index="trade_date", columns="instrument", values="value")
         new_df = self._transform(pivot_df)
         new_df = self.truncate_dataFrame(new_df, bgn_date)
-        new_df = new_df * self.direction
-        update_df = new_df.stack().reset_index(level=1)
+        new_df: pd.DataFrame = new_df * self.direction
+        update_df = new_df.stack(dropna=False).reset_index(level=1)
         return update_df
 
 
@@ -81,7 +81,7 @@ class CFactorsTransformerSum(CFactorsTransformer):
         return 0
 
     def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
-        new_df = pivot_df.rolling(window=self.arg_win).sum()
+        new_df = pivot_df.rolling(window=self.arg_win, min_periods=1).sum()
         return new_df
 
 
@@ -92,7 +92,7 @@ class CFactorsTransformerAver(CFactorsTransformer):
         return 0
 
     def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
-        new_df = pivot_df.rolling(window=self.arg_win).mean()
+        new_df = pivot_df.rolling(window=self.arg_win, min_periods=1).mean()
         return new_df
 
 
@@ -102,8 +102,8 @@ class CFactorsTransformerSharpe(CFactorsTransformer):
         return 0
 
     def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
-        mean_df = pivot_df.rolling(window=self.arg_win).mean()
-        std_df = pivot_df.rolling(window=self.arg_win).std()
+        mean_df = pivot_df.rolling(window=self.arg_win, min_periods=1).mean()
+        std_df = pivot_df.rolling(window=self.arg_win, min_periods=1).std()
         new_df = mean_df / std_df * np.sqrt(252)
         return new_df
 
@@ -114,7 +114,7 @@ class CFactorsTransformerBreakRatio(CFactorsTransformer):
         return 0
 
     def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
-        new_df = pivot_df / pivot_df.rolling(self.arg_win).mean() - 1
+        new_df = pivot_df / pivot_df.rolling(self.arg_win, min_periods=1).mean() - 1
         return new_df
 
 
@@ -125,7 +125,7 @@ class CFactorsTransformerBreakDiff(CFactorsTransformer):
         return 0
 
     def _transform(self, pivot_df: pd.DataFrame) -> pd.DataFrame:
-        new_df = pivot_df - pivot_df.rolling(self.arg_win).mean()
+        new_df = pivot_df - pivot_df.rolling(self.arg_win, min_periods=1).mean()
         return new_df
 
 

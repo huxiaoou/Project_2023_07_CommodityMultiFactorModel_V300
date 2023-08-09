@@ -139,7 +139,7 @@ class CFactors(object):
         for instrument in self.universe:
             all_factor_data[instrument] = self._get_instrument_factor_exposure(instrument, run_mode, bgn_date, stp_date)
         all_factor_df = pd.DataFrame(all_factor_data)
-        update_df = all_factor_df.stack().reset_index(level=1)
+        update_df = all_factor_df.stack(dropna=False).reset_index(level=1)
         return update_df
 
     def core(self, run_mode: str, bgn_date: str, stp_date: str):

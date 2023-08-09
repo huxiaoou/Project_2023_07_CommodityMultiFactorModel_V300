@@ -62,7 +62,7 @@ class CFactorsRS(CFactorsWithStock):
 
     def _get_instrument_factor_exposure(self, instrument: str, run_mode: str, bgn_date: str, stp_date: str) -> pd.Series:
         df = self.manager_stock.get_var_by_instrument(instrument, "in_stock", bgn_date, stp_date)
-        return df["in_stock"]
+        return df["in_stock"].fillna(0)
 
 
 class CFactorsBASIS(CFactorsWithBasis):
