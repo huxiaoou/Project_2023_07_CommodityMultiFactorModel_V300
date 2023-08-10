@@ -77,6 +77,7 @@ test_return_dir = os.path.join(factors_library_dir, "test_return")
 test_return_neutral_dir = os.path.join(factors_library_dir, "test_return_neutral")
 factors_exposure_dir = os.path.join(factors_library_dir, "factors_exposure")
 factors_exposure_neutral_dir = os.path.join(factors_library_dir, "factors_exposure_neutral")
+factors_exposure_corr_dir = os.path.join(factors_library_dir, "factors_exposure_corr")
 ic_tests_dir = os.path.join(factors_library_dir, "ic_tests")
 ic_tests_summary_dir = os.path.join(factors_library_dir, "ic_tests_summary")
 
@@ -105,6 +106,7 @@ if __name__ == "__main__":
     check_and_mkdir(test_return_neutral_dir)
     check_and_mkdir(factors_exposure_dir)
     check_and_mkdir(factors_exposure_neutral_dir)
+    check_and_mkdir(factors_exposure_corr_dir)
     check_and_mkdir(ic_tests_dir)
     check_and_mkdir(ic_tests_summary_dir)
 

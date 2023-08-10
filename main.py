@@ -7,7 +7,7 @@ from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_ra
                          md_by_instru_dir, fundamental_by_instru_dir,
                          instruments_return_dir, available_universe_dir,
                          test_return_dir, test_return_neutral_dir,
-                         factors_exposure_dir, factors_exposure_neutral_dir,
+                         factors_exposure_dir, factors_exposure_neutral_dir, factors_exposure_corr_dir,
                          signals_dir, ic_tests_dir, ic_tests_summary_dir,
                          calendar_path, instrument_info_path)
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification,
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     switch = args.switch.upper()
     if switch in ["ICS", "ICNS", "ICC"]:
         run_mode = None
-    elif switch in ["IR", "MR"]:
+    elif switch in ["IR", "MR", "FECOR"]:
         run_mode = "O"
     else:
         run_mode = args.mode.upper()
@@ -411,11 +411,21 @@ if __name__ == "__main__":
         )
         agent_summary.get_summary_mp(factors, factors_classification)
         agent_summary.get_cumsum_mp(factors_group)
-
     elif switch in ["ICC"]:
         from ic_tests.ic_tests_cls_summary import cal_ic_tests_comparison
 
         cal_ic_tests_comparison(neutral_method, ic_tests_summary_dir)
+    elif switch in ["FECOR"]:
+        from factors.factors_exposure_corr import cal_factors_exposure_corr
 
+        cal_factors_exposure_corr(
+            neutral_method="WS",
+            test_factor_list_l=["CTP126", "CVP126"], test_factor_list_r=[],
+            bgn_date=bgn_date, stp_date=stp_date,
+            factors_exposure_dir=factors_exposure_dir,
+            factors_exposure_neutral_dir=factors_exposure_neutral_dir,
+            factors_exposure_corr_dir=factors_exposure_corr_dir,
+            database_structure=database_structure,
+            calendar=calendar, )
     else:
         print(f"... switch = {switch} is not a legal option, please check again.")

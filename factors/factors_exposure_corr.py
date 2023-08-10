@@ -11,9 +11,8 @@ def cal_factors_exposure_corr(neutral_method: str,
                               bgn_date: str, stp_date: str,
                               factors_exposure_dir: str, factors_exposure_neutral_dir,
                               factors_exposure_corr_dir: str,
-                              calendar_path: str,
                               database_structure: dict[str, CLib1Tab1],
-                              ):
+                              calendar: CCalendar, ):
     # --- get test factor list
     test_factor_list = test_factor_list_l + test_factor_list_r
     if test_factor_list_r:
@@ -32,16 +31,13 @@ def cal_factors_exposure_corr(neutral_method: str,
     # --- initialize factor libs
     factor_libs_manager: dict[str, CManagerLibReader] = {}
     for factor_lbl in test_factor_list:
-        lib_id = factor_lbl if neutral_method == "" else factor_lbl + "." + neutral_method
+        lib_id = factor_lbl if neutral_method == "" else factor_lbl + "_" + neutral_method
         lib_struct = database_structure[lib_id]
         factor_libs_manager[factor_lbl] = CManagerLibReader(
             t_db_name=lib_struct.m_lib_name,
             t_db_save_dir=src_dir
         )
         factor_libs_manager[factor_lbl].set_default(lib_struct.m_tab.m_table_name)
-
-    # ---
-    calendar = CCalendar(calendar_path)
 
     # --- core loop
     factor_corr_by_date_data = {}
