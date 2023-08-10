@@ -418,9 +418,11 @@ if __name__ == "__main__":
     elif switch in ["FECOR"]:
         from factors.factors_exposure_corr import cal_factors_exposure_corr
 
+        test_factor_list_l = ["CTP126", "CVP126"]
+        test_factor_list_r = []
         cal_factors_exposure_corr(
             neutral_method="WS",
-            test_factor_list_l=["CTP126", "CVP126"], test_factor_list_r=[],
+            test_factor_list_l=test_factor_list_l, test_factor_list_r=test_factor_list_r,
             bgn_date=bgn_date, stp_date=stp_date,
             factors_exposure_dir=factors_exposure_dir,
             factors_exposure_neutral_dir=factors_exposure_neutral_dir,

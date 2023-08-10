@@ -286,7 +286,8 @@ class CFactorsIBETA(CFactorsWithMajorReturnAndMacroEconomic):
         filter_month = (month_ret_df.index >= base_month) & (month_ret_df.index < end_last_month)
         selected_month_ret_df: pd.DataFrame = month_ret_df.loc[filter_month].copy()
         selected_month_ret_df["cpi"] = self.manager_macro_economic.df["cpi_rate"] / 100
-        ms = cal_rolling_beta(selected_month_ret_df, x="cpi", y="major_return", rolling_window=arg_win_month)
+        selected_month_ret_df["cpi_diff"] = selected_month_ret_df["cpi"] - selected_month_ret_df["cpi"].shift(1)
+        ms = cal_rolling_beta(selected_month_ret_df, x="cpi_diff", y="major_return", rolling_window=arg_win_month)
         ms = pd.concat([ms, pd.Series({end_last_month: np.nan, iter_dates[-1][0:6]: np.nan})])
         ms_shift = ms.shift(2)
         df = df.merge(right=pd.DataFrame({"cbeta": ms_shift}), left_on="trade_month", right_index=True, how="left")

@@ -149,6 +149,9 @@ def cal_ic_tests_mp(proc_num: int, factors: list[str],
     pool.close()
     pool.join()
     t1 = dt.datetime.now()
-    print(f"... {SetFontGreen(f'IC-test-{neutral_method}')} calculated")
+    if neutral_method != "":
+        print(f"... {SetFontGreen(f'IC-test-{neutral_method}')} calculated")
+    else:
+        print(f"... {SetFontGreen(f'IC-test')} calculated")
     print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
     return 0
