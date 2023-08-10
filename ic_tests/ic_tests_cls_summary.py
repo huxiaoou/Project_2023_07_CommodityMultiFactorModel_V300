@@ -151,3 +151,31 @@ class CICTestsSummaryNeutral(CICTestsSummary):
 
     def _get_cumsum_file_id(self, factor_class):
         return f"ic_cumsum_{self.neutral_method}-{factor_class}"
+
+
+def cal_ic_tests_comparison(neutral_method: str, ic_tests_summary_dir: str):
+    pd.set_option("display.float_format", "{:.4f}".format)
+    pd.set_option("display.width", 0)
+    pd.set_option("display.max_rows", 1000)
+
+    statistics_file = "ic_statistics-raw.csv"
+    statistics_path = os.path.join(ic_tests_summary_dir, statistics_file)
+    statistics_df = pd.read_csv(statistics_path)
+    statistics_df = statistics_df[["class", "factor", "ICMean", "ICStd", "ICIR"]]
+
+    statistics_neutral_file = f"ic_statistics_{neutral_method}.csv"
+    statistics_neutral_path = os.path.join(ic_tests_summary_dir, statistics_neutral_file)
+    statistics_neutral_df = pd.read_csv(statistics_neutral_path)
+    statistics_neutral_df = statistics_neutral_df[["class", "factor", "ICMean", "ICStd", "ICIR"]]
+
+    comparison_df = pd.merge(
+        left=statistics_df, right=statistics_neutral_df,
+        on=["class", "factor"],
+        how="outer", suffixes=("", "(SEC-NEU)")
+    )
+    comparison_file = "ic_statistics-comparison.csv"
+    comparison_path = os.path.join(ic_tests_summary_dir, comparison_file)
+    comparison_df.to_csv(comparison_path, index=False, float_format="%.4f")
+
+    print(comparison_df)
+    return 0

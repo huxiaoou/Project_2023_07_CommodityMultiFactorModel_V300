@@ -1,9 +1,6 @@
 import argparse
 import pandas as pd
 import datetime as dt
-from factors.factors_normalize_delinear import cal_factors_normalize_and_delinear_mp
-from factors.factors_return import cal_factors_return_mp
-from ic_tests.factors_exposure_corr import cal_factors_exposure_corr
 
 from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_rate_file,
                          futures_by_instrument_dir, major_return_db_name, major_minor_db_name,
@@ -12,23 +9,13 @@ from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_ra
                          instruments_return_dir, available_universe_dir,
                          test_return_dir, test_return_neutral_dir,
                          factors_exposure_dir, factors_exposure_neutral_dir,
-                         factors_exposure_norm_dir, factors_exposure_delinear_dir,
-                         factors_return_dir, factors_portfolio_dir, instruments_residual_dir,
-                         signals_dir, signals_allocation_dir, signals_opt_dir,
-                         ic_tests_dir, ic_tests_summary_dir, ic_tests_delinear_dir, factors_exposure_corr_dir,
-                         simulations_opt_dir, evaluations_opt_dir, by_year_dir, simu_positions_and_trades_dir,
+                         signals_dir, ic_tests_dir, ic_tests_summary_dir,
                          calendar_path, instrument_info_path)
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification, sectors,
                             available_universe_options, neutral_method, test_windows, factors_pool_options, factors_return_lags, selected_pool)
 from config_factor import factors_settings, factors, factors_classification, factors_group, factors_basis
 from struct_lib_portfolio import database_structure
 from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
-
-from config_portfolio import (available_factors, timing_factors,
-                              pid, factors_return_lag,
-                              minimum_abs_weight,
-                              selected_sectors, selected_factors,
-                              cost_rate, cost_reservation, init_premium, risk_free_rate)
 
 if __name__ == "__main__":
     args_parser = argparse.ArgumentParser(description="Entry point of this project", formatter_class=argparse.RawTextHelpFormatter)
@@ -41,25 +28,12 @@ if __name__ == "__main__":
     'trn': test return neutral,
     'fe': factors exposure,
     'fen': factors exposure neutral,
-    'dln': norm and delinear,
-    'fr': factor return,
-    'sigv': signal vanilla,
-    'sigm': signal moving average for timing,
-    'sigar': signal allocation raw,
-    'sigap': signal allocation pure,
-    'optv': optimization for signal vanilla,
-    'optm': optimization for signal moving average,
-    'opt': optimization for allocation,
     'ic': ic-tests,
     'icn': ic-tests-neutral,
-    'icd': ic-tests-delinear,
     'ics': ic-tests-summary,
     'icns': ic-tests-neutral-summary,
-    'icds': ic-tests-delinear-summary,
+    'icc': ic-tests-comparison,
     'fecor': factor exposure correlation,
-    'simu': simulation,
-    'eval': evaluation,
-    'by': evaluation by year,
     }""")
     args_parser.add_argument("-m", "--mode", type=str, choices=("o", "a"), help="""run mode, available options = {'o', 'a'}""")
     args_parser.add_argument("-b", "--bgn", type=str, help="""begin date, must be provided if run_mode = 'a' else DO NOT provided.""")
@@ -80,7 +54,7 @@ if __name__ == "__main__":
 
     args = args_parser.parse_args()
     switch = args.switch.upper()
-    if switch in ["ICS", "ICNS", "ICDS", "ICC", "FECOR", "SIMU", "EVAL", "BY", "POS"]:
+    if switch in ["ICS", "ICNS", "ICC"]:
         run_mode = None
     elif switch in ["IR", "MR"]:
         run_mode = "O"
@@ -390,34 +364,6 @@ if __name__ == "__main__":
             factors_exposure_neutral_dir=factors_exposure_neutral_dir,
             database_structure=database_structure,
             calendar=calendar, )
-    # elif switch in ["DLN"]:
-    #     cal_factors_normalize_and_delinear_mp(
-    #         proc_num=proc_num, pids=list(factors_pool_options.keys()),
-    #         selected_factors_pool=factors_pool_options["P3"],
-    #         neutral_method=neutral_method,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         concerned_instruments_universe=concerned_instruments_universe,
-    #         sector_classification=sector_classification,
-    #         available_universe_dir=available_universe_dir,
-    #         factors_exposure_dir=factors_exposure_dir,
-    #         factors_exposure_norm_dir=factors_exposure_norm_dir,
-    #         factors_exposure_delinear_dir=factors_exposure_delinear_dir,
-    #         database_structure=database_structure,
-    #     )
-    # elif switch in ["FR"]:
-    #     cal_factors_return_mp(
-    #         proc_num=proc_num, pids=["P3"], factors_pool_options=factors_pool_options,
-    #         neutral_methods=["WS"], test_windows=test_windows, factors_return_lags=factors_return_lags,
-    #         run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-    #         sectors=sectors, sector_classification=sector_classification,
-    #         concerned_instruments_universe=concerned_instruments_universe,
-    #         available_universe_dir=available_universe_dir,
-    #         factors_exposure_delinear_dir=factors_exposure_delinear_dir, test_return_dir=test_return_dir,
-    #         factors_return_dir=factors_return_dir, factors_portfolio_dir=factors_portfolio_dir,
-    #         instruments_residual_dir=instruments_residual_dir,
-    #         calendar_path=calendar_path,
-    #         database_structure=database_structure,
-    #     )
     elif switch in ["IC"]:
         from ic_tests.ic_tests_cls import cal_ic_tests_mp
 
@@ -444,20 +390,6 @@ if __name__ == "__main__":
             run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
             neutral_method=neutral_method,
         )
-    elif switch in ["ICD"]:
-        from ic_tests.ic_tests_factors_delinear import cal_ic_tests_delinear_mp
-
-        cal_ic_tests_delinear_mp(
-            proc_num=proc_num,
-            pids=[pid], factors_pool_options=factors_pool_options,
-            neutral_methods=[neutral_method], test_windows=test_windows, factors_return_lags=[0],
-            run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-            ic_tests_delinear_dir=ic_tests_delinear_dir,
-            exposure_dir=factors_exposure_delinear_dir,
-            return_dir=test_return_neutral_dir,
-            calendar_path=calendar_path,
-            database_structure=database_structure,
-        )
     elif switch in ["ICS"]:
         from ic_tests.ic_tests_cls_summary import CICTestsSummaryRaw
 
@@ -480,23 +412,10 @@ if __name__ == "__main__":
         agent_summary.get_summary_mp(factors, factors_classification)
         agent_summary.get_cumsum_mp(factors_group)
 
-    elif switch in ["ICDS"]:
-        from ic_tests.ic_tests_summary_delinear import cal_ic_tests_delinear_summary_mp
-
-        cal_ic_tests_delinear_summary_mp(
-            proc_num=proc_num,
-            pids=[pid], factors_pool_options=factors_pool_options,
-            neutral_methods=[neutral_method], test_windows=test_windows, factors_return_lags=[0],
-            ic_tests_delinear_dir=ic_tests_delinear_dir,
-            database_structure=database_structure,
-        )
     elif switch in ["ICC"]:
-        from ic_tests.ic_tests_comparison import cal_ic_tests_comparison
+        from ic_tests.ic_tests_cls_summary import cal_ic_tests_comparison
 
-        cal_ic_tests_comparison(
-            factors=factors, neutral_method=neutral_method, exception_list=[],
-            ic_tests_dir=ic_tests_dir, top_n=12
-        )
+        cal_ic_tests_comparison(neutral_method, ic_tests_summary_dir)
 
     else:
         print(f"... switch = {switch} is not a legal option, please check again.")
