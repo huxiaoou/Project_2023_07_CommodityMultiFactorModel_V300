@@ -2,11 +2,18 @@ import numpy as np
 import pandas as pd
 import scipy.stats as sps
 from itertools import product
-from skyrim.falkreath import CLib1Tab1, CManagerLibReader
+from skyrim.falkreath import CLib1Tab1, CTable
 
 
-# -------------------------------------------
-# --- Part I: factor exposure calculation ---
+def get_factor_exposure_lib_struct(factor: str) -> CLib1Tab1:
+    return CLib1Tab1(
+        t_lib_name=factor + ".db",
+        t_tab=CTable({
+            "table_name": factor,
+            "primary_keys": {"trade_date": "TEXT", "instrument": "TEXT"},
+            "value_columns": {"value": "REAL"},
+        })
+    )
 
 
 def transform_dist(t_exposure_srs: pd.Series):
@@ -49,24 +56,6 @@ def neutralize_by_sector(t_raw_data: pd.Series, t_sector_df: pd.DataFrame, t_wei
     b = xwx_inv.dot(xwy)  # b = [XWX]^{-1}[XWY]
     _r = _y - _x.dot(b)  # r = Y - bX
     return pd.Series(data=_r, index=idx)
-
-
-def load_factor_return(test_window: int,
-                       pid: str, neutral_method: str, factors_return_lag: int,
-                       loading_factors: list[str],
-                       factors_return_dir: str,
-                       database_structure: dict[str, CLib1Tab1]):
-    # --- load lib: factors_return/instruments_residual
-    factors_return_lib_id = "factors_return.{}.{}.TW{:03d}.T{}".format(pid, neutral_method, test_window, factors_return_lag)
-    factors_return_lib = CManagerLibReader(t_db_save_dir=factors_return_dir, t_db_name=database_structure[factors_return_lib_id].m_lib_name)
-    factors_return_lib.set_default(database_structure[factors_return_lib_id].m_tab.m_table_name)
-    factors_return_df = factors_return_lib.read(t_value_columns=["trade_date", "factor", "value"])
-    factors_return_lib.close()
-
-    factors_return_agg_df = pd.pivot_table(data=factors_return_df, index="trade_date", columns="factor", values="value", aggfunc=sum)
-    factors_return_agg_df = factors_return_agg_df.sort_index(ascending=True)
-    factors_return_agg_df = factors_return_agg_df[loading_factors]
-    return factors_return_agg_df
 
 
 if __name__ == "__main__":
