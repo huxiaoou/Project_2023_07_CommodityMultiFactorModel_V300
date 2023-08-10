@@ -404,7 +404,7 @@ class CFactorsKDJ(CFactorsWithMajorReturn):
         df["k"] = df["rsv"].ewm(alpha=1 / 3, adjust=False).mean()
         df["d"] = df["k"].ewm(alpha=1 / 3, adjust=False).mean()
         s = df["k"] * 3 - df["d"] * 2
-        return self.truncate_series(s, bgn_date)
+        return -self.truncate_series(s, bgn_date)
 
 
 class CFactorsRSI(CFactorsWithMajorReturn):
@@ -439,7 +439,7 @@ class CFactorsRSI(CFactorsWithMajorReturn):
         df["negSum"] = (-df["d"] * (1 - df["sign"])).rolling(self.n).sum()
         df["avgU"] = (df["posSum"] / df["posN"]).fillna(0)
         df["avgD"] = (df["negSum"] / df["negN"]).fillna(0)
-        s = df["avgU"] / (df["avgU"] + df["avgD"])
+        s = df["avgD"] / (df["avgU"] + df["avgD"])
         return self.truncate_series(s, bgn_date)
 
 

@@ -1,5 +1,4 @@
 import pandas as pd
-
 from factors.factors_cls_base import (CFactorsWithMajorReturn, CFactorsWithInstruVolume, CFactorsWithInstruVolumeAndInstruMember,
                                       CFactorsWithStock, CFactorsWithBasis, CFactorsWithMajorMinorAndMdc)
 
@@ -18,7 +17,7 @@ class CFactorMTM(CFactorsWithMajorReturn):
             t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
         db_reader.close()
         df.set_index("trade_date", inplace=True)
-        return df["major_return"]
+        return -df["major_return"]
 
 
 class CFactorsSIZE(CFactorsWithInstruVolume):
@@ -118,7 +117,7 @@ class CFactorsLIQUID(CFactorsWithMajorReturn):
             t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
         db_reader.close()
         df.set_index("trade_date", inplace=True)
-        df["liquid"] = df["major_return"].abs() * 1e8 / df["amount"]
+        df["liquid"] = -df["major_return"].abs() * 1e8 / df["amount"]
         return df["liquid"]
 
 
@@ -228,4 +227,4 @@ class CFactorsNETDOIW(CFactorsWithInstruVolumeAndInstruMember):
         db_reader.close()
         df.set_index("trade_date", inplace=True)
         df["net"] = self._get_wgt_net_srs(instrument, bgn_date, stp_date, "lngDlt", "srtDlt")
-        return df["net"] / df["oi"] * 100
+        return -df["net"] / df["oi"] * 100

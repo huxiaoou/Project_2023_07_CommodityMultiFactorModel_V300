@@ -11,9 +11,9 @@ from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_ra
                          factors_exposure_dir, factors_exposure_neutral_dir,
                          signals_dir, ic_tests_dir, ic_tests_summary_dir,
                          calendar_path, instrument_info_path)
-from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification, sectors,
-                            available_universe_options, neutral_method, test_windows, factors_pool_options, factors_return_lags, selected_pool)
-from config_factor import factors_settings, factors, factors_classification, factors_group, factors_basis
+from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification,
+                            available_universe_options, neutral_method)
+from config_factor import factors_settings, factors, factors_classification, factors_group
 from struct_lib_portfolio import database_structure
 from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
@@ -144,10 +144,10 @@ if __name__ == "__main__":
         if factor == "MTM":
             agent_factor = CFactorMTM(futures_by_instrument_dir, major_return_db_name, **shared_keywords)
             agent_factor.core(run_mode, raw_factor_bgn_date, stp_date)
-            agent_transformer = CMpTransformer(proc_num, [factor], "SUM", factors_settings[factor]["S"], 1, factors_exposure_dir,
+            agent_transformer = CMpTransformer(proc_num, [factor], "SUM", factors_settings[factor]["S"], -1, factors_exposure_dir,
                                                run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
-            agent_transformer = CMpTransformer(proc_num, [factor], "SHARPE", factors_settings[factor]["SP"], 1, factors_exposure_dir,
+            agent_transformer = CMpTransformer(proc_num, [factor], "SHARPE", factors_settings[factor]["SP"], -1, factors_exposure_dir,
                                                run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
 
@@ -157,10 +157,10 @@ if __name__ == "__main__":
             agent_transformer = CMpTransformer(proc_num, [factor], "AVER", factors_settings[factor]["A"], 1, factors_exposure_dir,
                                                run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
-            agent_transformer = CMpTransformer(proc_num, [factor], "BR", factors_settings[factor]["BR"], 1, factors_exposure_dir,
+            agent_transformer = CMpTransformer(proc_num, [factor], "BR", factors_settings[factor]["BR"], -1, factors_exposure_dir,
                                                run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
-            agent_transformer = CMpTransformer(proc_num, [factor], "LR", factors_settings[factor]["LR"], 1, factors_exposure_dir,
+            agent_transformer = CMpTransformer(proc_num, [factor], "LR", factors_settings[factor]["LR"], -1, factors_exposure_dir,
                                                run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
 
@@ -305,7 +305,8 @@ if __name__ == "__main__":
             agent_factor = CMpFactorWithArgWin(proc_num, factor, factors_settings[factor][""], run_mode, bgn_date, stp_date)
             agent_factor.mp_cal_factor(futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name, **shared_keywords)
             src_factor_ids = [f"{factor}{_:03d}" for _ in factors_settings[factor][""]]
-            agent_transformer = CMpTransformer(proc_num, src_factor_ids, "LD", factors_settings[factor]["LD"], 1, factors_exposure_dir,
+            direction = -1 if factor in ["RVOL"] else 1
+            agent_transformer = CMpTransformer(proc_num, src_factor_ids, "LD", factors_settings[factor]["LD"], direction, factors_exposure_dir,
                                                run_mode, bgn_date, stp_date, factor)
             agent_transformer.mp_cal_transform(**shared_keywords)
 

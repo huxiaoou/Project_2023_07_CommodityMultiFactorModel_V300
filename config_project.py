@@ -136,15 +136,7 @@ sector_classification = {
 # --- test return ---
 test_windows = [5, 10, 15, 20]  # 4
 test_lag = 1
-factors_return_lags = (0, 1)
 
-# --- factors pool ---
-factors_pool_options = {
-    "P3": ["BASIS147", "CSP189", "CTP063", "CVP063",
-           "SKEW010", "MTM231", "TS126", "RSW252HL063",
-           "SIZE252", "TO252", "BETA021"],
-}
-selected_pool = factors_pool_options["P3"]
 
 # neutral methods
 neutral_method = "WS"
