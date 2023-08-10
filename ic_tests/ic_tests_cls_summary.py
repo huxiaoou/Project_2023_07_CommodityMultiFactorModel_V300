@@ -30,6 +30,9 @@ class CICTestsSummary(object):
     def _get_cumsum_file_id(self, factor_class: str) -> str:
         pass
 
+    def _get_selected_factors_cumsum_ic_id(self) -> str:
+        pass
+
     def __get_ic_test_data(self, factor: str) -> pd.DataFrame:
         ic_test_lib_structure = self.database_structure[self._get_src_lib_id(factor)]
         ic_test_lib = CManagerLibReader(t_db_name=ic_test_lib_structure.m_lib_name, t_db_save_dir=self.ic_tests_dir)
@@ -115,8 +118,24 @@ class CICTestsSummary(object):
         pool.close()
         pool.join()
         t1 = dt.datetime.now()
-        print(f"... {SetFontGreen('IC-tests summary')} calculated")
+        print(f"... {SetFontGreen('IC-tests plot cumsum for all factors by class')} calculated")
         print(f"... total time consuming:{SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
+        return 0
+
+    def plot_selected_factors_cumsum(self, factors: tuple[str]):
+        ic_cumsum_data = {}
+        for factor in factors:
+            ic_df = self.__get_ic_test_data(factor)
+            ic_cumsum_data[factor] = ic_df["ic"].cumsum()
+        ic_cumsum_df = pd.DataFrame(ic_cumsum_data)
+        plot_lines(
+            t_plot_df=ic_cumsum_df, t_fig_name=self._get_selected_factors_cumsum_ic_id(),
+            t_save_dir=self.ic_tests_summary_dir, t_colormap="jet",
+        )
+        ic_cumsum_file = self._get_selected_factors_cumsum_ic_id() + ".csv"
+        ic_cumsum_path = os.path.join(self.ic_tests_summary_dir, ic_cumsum_file)
+        ic_cumsum_df.to_csv(ic_cumsum_path, index_label="trade_date", float_format="%.6f")
+        print(f"... {SetFontGreen('IC-tests plot cumsum for selected factors')}")
         return 0
 
 
@@ -132,6 +151,9 @@ class CICTestsSummaryRaw(CICTestsSummary):
 
     def _get_cumsum_file_id(self, factor_class):
         return f"ic_cumsum-raw-{factor_class}"
+
+    def _get_selected_factors_cumsum_ic_id(self) -> str:
+        return f"ic_selected_factors-raw"
 
 
 class CICTestsSummaryNeutral(CICTestsSummary):
@@ -151,6 +173,9 @@ class CICTestsSummaryNeutral(CICTestsSummary):
 
     def _get_cumsum_file_id(self, factor_class):
         return f"ic_cumsum_{self.neutral_method}-{factor_class}"
+
+    def _get_selected_factors_cumsum_ic_id(self) -> str:
+        return f"ic_selected_factors-{self.neutral_method}"
 
 
 def cal_ic_tests_comparison(neutral_method: str, ic_tests_summary_dir: str):

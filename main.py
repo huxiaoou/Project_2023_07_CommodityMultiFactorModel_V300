@@ -13,6 +13,7 @@ from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_ra
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification,
                             available_universe_options, neutral_method)
 from config_factor import factors_settings, factors, factors_classification, factors_group
+from config_portfolio import selected_raw_factors, selected_neu_factors
 from struct_lib_portfolio import database_structure
 from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
@@ -400,6 +401,7 @@ if __name__ == "__main__":
         )
         agent_summary.get_summary_mp(factors, factors_classification)
         agent_summary.get_cumsum_mp(factors_group)
+        agent_summary.plot_selected_factors_cumsum(selected_raw_factors)
     elif switch in ["ICNS"]:
         from ic_tests.ic_tests_cls_summary import CICTestsSummaryNeutral
 
@@ -411,6 +413,8 @@ if __name__ == "__main__":
         )
         agent_summary.get_summary_mp(factors, factors_classification)
         agent_summary.get_cumsum_mp(factors_group)
+        agent_summary.plot_selected_factors_cumsum(selected_neu_factors)
+
     elif switch in ["ICC"]:
         from ic_tests.ic_tests_cls_summary import cal_ic_tests_comparison
 
@@ -418,10 +422,10 @@ if __name__ == "__main__":
     elif switch in ["FECOR"]:
         from factors.factors_exposure_corr import cal_factors_exposure_corr
 
-        test_factor_list_l = ["CTP126", "CVP126"]
+        test_factor_list_l = ["SKEW010", "SKEW126"]
         test_factor_list_r = []
         cal_factors_exposure_corr(
-            neutral_method="WS",
+            neutral_method="",
             test_factor_list_l=test_factor_list_l, test_factor_list_r=test_factor_list_r,
             bgn_date=bgn_date, stp_date=stp_date,
             factors_exposure_dir=factors_exposure_dir,
