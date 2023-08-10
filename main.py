@@ -1,7 +1,6 @@
 import argparse
 import pandas as pd
 import datetime as dt
-
 from setup_model import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_rate_file,
                          futures_by_instrument_dir, major_return_db_name, major_minor_db_name,
                          instrument_volume_db_name, instrument_member_db_name,
