@@ -2,18 +2,6 @@ import numpy as np
 import pandas as pd
 import scipy.stats as sps
 from itertools import product
-from skyrim.falkreath import CLib1Tab1, CTable
-
-
-def get_factor_exposure_lib_struct(factor: str) -> CLib1Tab1:
-    return CLib1Tab1(
-        t_lib_name=factor + ".db",
-        t_tab=CTable({
-            "table_name": factor,
-            "primary_keys": {"trade_date": "TEXT", "instrument": "TEXT"},
-            "value_columns": {"value": "REAL"},
-        })
-    )
 
 
 def transform_dist(t_exposure_srs: pd.Series):
