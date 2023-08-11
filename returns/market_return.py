@@ -2,18 +2,17 @@ import os
 import numpy as np
 import datetime as dt
 import pandas as pd
+from struct_lib.returns_and_exposure import get_lib_struct_available_universe
 from skyrim.whiterun import CCalendar, SetFontGreen
-from skyrim.falkreath import CLib1Tab1, CManagerLibReader
+from skyrim.falkreath import CManagerLibReader
 
 
 def cal_market_return(bgn_date: str, stp_date: str,
                       available_universe_dir: str,
                       instruments_return_dir: str,
-                      database_structure: dict[str, CLib1Tab1],
                       calendar: CCalendar):
-
     # --- initialize lib
-    available_universe_lib_structure = database_structure["available_universe"]
+    available_universe_lib_structure = get_lib_struct_available_universe()
     available_universe_lib = CManagerLibReader(t_db_name=available_universe_lib_structure.m_lib_name, t_db_save_dir=available_universe_dir)
     available_universe_lib.set_default(t_default_table_name=available_universe_lib_structure.m_tab.m_table_name)
 

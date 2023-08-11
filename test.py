@@ -1,5 +1,5 @@
 from signals.signals_cls import CSignalHedge, CCalendar
-from setup_model import calendar_path
+from setup_project import calendar_path
 
 calendar = CCalendar(calendar_path)
 

@@ -12,7 +12,6 @@ def get_lib_struct_available_universe() -> CLib1Tab1:
     )
 
 
-# test return structure
 def get_lib_struct_test_return() -> CLib1Tab1:
     return CLib1Tab1(
         t_lib_name="test_return.db",

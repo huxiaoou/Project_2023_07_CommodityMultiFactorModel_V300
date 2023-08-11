@@ -1,9 +1,10 @@
 import os
 import pandas as pd
 import itertools as ittl
+from struct_lib.returns_and_exposure import get_lib_struct_factor_exposure, get_lib_struct_factor_exposure_neutral
 from skyrim.winterhold import plot_lines
 from skyrim.whiterun import CCalendar
-from skyrim.falkreath import CLib1Tab1, CManagerLibReader
+from skyrim.falkreath import CManagerLibReader
 
 
 def cal_factors_exposure_corr(neutral_method: str,
@@ -11,7 +12,6 @@ def cal_factors_exposure_corr(neutral_method: str,
                               bgn_date: str, stp_date: str,
                               factors_exposure_dir: str, factors_exposure_neutral_dir,
                               factors_exposure_corr_dir: str,
-                              database_structure: dict[str, CLib1Tab1],
                               calendar: CCalendar, ):
     # --- get test factor list
     test_factor_list = test_factor_list_l + test_factor_list_r
@@ -31,8 +31,10 @@ def cal_factors_exposure_corr(neutral_method: str,
     # --- initialize factor libs
     factor_libs_manager: dict[str, CManagerLibReader] = {}
     for factor_lbl in test_factor_list:
-        lib_id = factor_lbl if neutral_method == "" else factor_lbl + "_" + neutral_method
-        lib_struct = database_structure[lib_id]
+        if neutral_method == "":
+            lib_struct = get_lib_struct_factor_exposure(factor_lbl)
+        else:
+            lib_struct = get_lib_struct_factor_exposure_neutral(factor_lbl, neutral_method)
         factor_libs_manager[factor_lbl] = CManagerLibReader(
             t_db_name=lib_struct.m_lib_name,
             t_db_save_dir=src_dir

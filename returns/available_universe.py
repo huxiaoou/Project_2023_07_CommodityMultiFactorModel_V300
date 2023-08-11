@@ -1,7 +1,8 @@
 import datetime as dt
 import pandas as pd
+from struct_lib.returns_and_exposure import get_lib_struct_available_universe
 from skyrim.whiterun import CCalendar, SetFontGreen, SetFontRed
-from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriter
+from skyrim.falkreath import CManagerLibReader, CManagerLibWriter
 
 
 def get_available_universe_by_date(x: pd.Series, ret_df: pd.DataFrame, amt_df: pd.DataFrame, res: []):
@@ -21,7 +22,6 @@ def cal_available_universe(
         available_universe_options: dict[str, int | float],
         available_universe_dir: str,
         futures_by_instrument_dir: str, major_return_db_name: str,
-        database_structure: dict[str, CLib1Tab1],
         calendar: CCalendar):
     t0 = dt.datetime.now()
     _wanyuan, _yiyuan = 1e4, 1e8
@@ -32,7 +32,7 @@ def cal_available_universe(
     base_date = calendar.get_next_date(iter_dates[0], -rolling_win + 1)
 
     # --- initialize lib
-    available_universe_lib_structure = database_structure["available_universe"]
+    available_universe_lib_structure = get_lib_struct_available_universe()
     available_universe_lib = CManagerLibWriter(t_db_name=available_universe_lib_structure.m_lib_name, t_db_save_dir=available_universe_dir)
     available_universe_lib.initialize_table(t_table=available_universe_lib_structure.m_tab, t_remove_existence=run_mode in ["O"])
     dst_lib_is_continuous = available_universe_lib.check_continuity(append_date=bgn_date, t_calendar=calendar) if run_mode in ["A"] else 0

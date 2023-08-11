@@ -4,24 +4,22 @@ import multiprocessing as mp
 import sqlite3
 import numpy as np
 import pandas as pd
+from struct_lib.returns_and_exposure import get_lib_struct_ic_test, get_lib_struct_ic_test_neutral
 from skyrim.whiterun import SetFontGreen
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader
 from skyrim.winterhold import plot_lines
 
 
 class CICTestsSummary(object):
-    def __init__(self, proc_num: int,
-                 ic_tests_dir: str, ic_tests_summary_dir: str,
-                 database_structure: dict[str, CLib1Tab1]):
+    def __init__(self, proc_num: int, ic_tests_dir: str, ic_tests_summary_dir: str):
         self.ic_tests_dir = ic_tests_dir
         self.ic_tests_summary_dir = ic_tests_summary_dir
-        self.database_structure = database_structure
         self.proc_num = proc_num
 
-    def _get_subclass_id(self) -> str:
+    def _get_ic_test_struct(self, factor: str) -> CLib1Tab1:
         pass
 
-    def _get_src_lib_id(self, factor: str) -> str:
+    def _get_subclass_id(self) -> str:
         pass
 
     def _get_summary_file_id(self) -> str:
@@ -34,9 +32,9 @@ class CICTestsSummary(object):
         pass
 
     def __get_ic_test_data(self, factor: str) -> pd.DataFrame:
-        ic_test_lib_structure = self.database_structure[self._get_src_lib_id(factor)]
-        ic_test_lib = CManagerLibReader(t_db_name=ic_test_lib_structure.m_lib_name, t_db_save_dir=self.ic_tests_dir)
-        ic_test_lib.set_default(ic_test_lib_structure.m_tab.m_table_name)
+        ic_test_lib_struct = self._get_ic_test_struct(factor)
+        ic_test_lib = CManagerLibReader(t_db_name=ic_test_lib_struct.m_lib_name, t_db_save_dir=self.ic_tests_dir)
+        ic_test_lib.set_default(ic_test_lib_struct.m_tab.m_table_name)
         ic_df = ic_test_lib.read(t_value_columns=["trade_date", "value"]).set_index("trade_date")
         ic_test_lib.close()
         ic_df.rename(mapper={"value": "ic"}, axis=1, inplace=True)
@@ -140,11 +138,11 @@ class CICTestsSummary(object):
 
 
 class CICTestsSummaryRaw(CICTestsSummary):
+    def _get_ic_test_struct(self, factor: str) -> CLib1Tab1:
+        return get_lib_struct_ic_test(factor)
+
     def _get_subclass_id(self) -> str:
         return "RAW"
-
-    def _get_src_lib_id(self, factor):
-        return f"ic-{factor}"
 
     def _get_summary_file_id(self) -> str:
         return "ic_statistics-raw"
@@ -162,11 +160,11 @@ class CICTestsSummaryNeutral(CICTestsSummary):
         super().__init__(**kwargs)
         self.neutral_method = neutral_method
 
+    def _get_ic_test_struct(self, factor: str) -> CLib1Tab1:
+        return get_lib_struct_ic_test_neutral(factor, self.neutral_method)
+
     def _get_subclass_id(self) -> str:
         return self.neutral_method
-
-    def _get_src_lib_id(self, factor):
-        return f"ic-{factor}_{self.neutral_method}"
 
     def _get_summary_file_id(self) -> str:
         return f"ic_statistics_{self.neutral_method}"

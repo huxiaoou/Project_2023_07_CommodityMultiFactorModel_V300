@@ -1,8 +1,9 @@
 import os
 import numpy as np
 import pandas as pd
+from struct_lib.returns_and_exposure import get_lib_struct_factor_exposure
 from skyrim.whiterun import CCalendarMonthly, SetFontRed, SetFontGreen
-from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriter
+from skyrim.falkreath import CManagerLibReader, CManagerLibWriter
 
 
 # -----------------------------------------
@@ -88,17 +89,15 @@ class CFactors(object):
     def __init__(self,
                  concerned_instruments_universe: list[str],
                  factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
                  calendar: CCalendarMonthly,
                  ):
         self.universe = concerned_instruments_universe
         self.factors_exposure_dst_dir = factors_exposure_dst_dir
-        self.database_structure = database_structure
         self.calendar = calendar
         self.factor_id: str = "FactorIdNotInit"
 
     def __get_dst_lib_reader(self) -> CManagerLibReader:
-        factor_lib_struct = self.database_structure[self.factor_id]
+        factor_lib_struct = get_lib_struct_factor_exposure(self.factor_id)
         factor_lib = CManagerLibReader(
             t_db_name=factor_lib_struct.m_lib_name,
             t_db_save_dir=self.factors_exposure_dst_dir
@@ -107,7 +106,7 @@ class CFactors(object):
         return factor_lib
 
     def __get_dst_lib_writer(self, run_mode: str) -> CManagerLibWriter:
-        factor_lib_struct = self.database_structure[self.factor_id]
+        factor_lib_struct = get_lib_struct_factor_exposure(self.factor_id)
         factor_lib = CManagerLibWriter(
             t_db_name=factor_lib_struct.m_lib_name,
             t_db_save_dir=self.factors_exposure_dst_dir
@@ -163,22 +162,14 @@ class CFactors(object):
 
 
 class CFactorsWithMajorReturn(CFactors):
-    def __init__(self, futures_by_instrument_dir: str, major_return_db_name: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, futures_by_instrument_dir: str, major_return_db_name: str, **kwargs):
+        super().__init__(**kwargs)
         self.manager_major_return = CDbByInstrument(futures_by_instrument_dir, major_return_db_name)
 
 
 class CFactorsWithMajorReturnAndArgWin(CFactorsWithMajorReturn):
-    def __init__(self, arg_win: int, futures_by_instrument_dir: str, major_return_db_name: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, arg_win: int, **kwargs):
+        super().__init__(**kwargs)
         self.arg_win = arg_win
         self._near_short_term = 21  # for CSP and VAL
 
@@ -189,95 +180,51 @@ class CFactorsWithMajorReturnAndArgWin(CFactorsWithMajorReturn):
 
 
 class CFactorsWithMajorReturnAndMarketReturn(CFactorsWithMajorReturnAndArgWin):
-    def __init__(self, arg_win: int, futures_by_instrument_dir: str, major_return_db_name: str,
-                 market_return_dir, market_return_file,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(arg_win, futures_by_instrument_dir, major_return_db_name,
-                         concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, arg_win: int, market_return_dir: str, market_return_file: str, **kwargs):
+        super().__init__(arg_win, **kwargs)
         self.manager_market_return = CReaderMarketReturn(market_return_dir, market_return_file)
 
 
 class CFactorsWithMajorReturnAndExchangeRate(CFactorsWithMajorReturnAndArgWin):
-    def __init__(self, arg_win: int, futures_by_instrument_dir: str, major_return_db_name: str,
-                 forex_dir: str, exchange_rate_file: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(arg_win, futures_by_instrument_dir, major_return_db_name,
-                         concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, arg_win: int, forex_dir: str, exchange_rate_file: str, **kwargs):
+        super().__init__(arg_win, **kwargs)
         self.manager_exchange_rate = CReaderExchangeRate(forex_dir, exchange_rate_file)
 
 
 class CFactorsWithMajorReturnAndMacroEconomic(CFactorsWithMajorReturnAndArgWin):
-    def __init__(self, arg_win: int, futures_by_instrument_dir: str, major_return_db_name: str,
-                 macro_economic_dir, cpi_m2_file,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(arg_win, futures_by_instrument_dir, major_return_db_name,
-                         concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, arg_win: int, macro_economic_dir: str, cpi_m2_file: str, **kwargs):
+        super().__init__(arg_win, **kwargs)
         self.manager_macro_economic = CReaderMacroEconomic(macro_economic_dir, cpi_m2_file)
 
 
 class CFactorsWithBasis(CFactors):
-    def __init__(self,
-                 fundamental_by_instru_dir: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, fundamental_by_instru_dir: str, **kwargs):
+        super().__init__(**kwargs)
         self.manager_basis = CFundByInstrument(self.universe, fundamental_by_instru_dir, "BASIS")
 
 
 class CFactorsWithStock(CFactors):
-    def __init__(self,
-                 fundamental_by_instru_dir: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, fundamental_by_instru_dir: str, **kwargs):
+        super().__init__(**kwargs)
         self.manager_stock = CFundByInstrument(self.universe, fundamental_by_instru_dir, "STOCK")
 
 
 class CFactorsWithMajorMinorAndMdc(CFactors):
-    def __init__(self,
-                 futures_by_instrument_dir: str, major_minor_db_name: str,
-                 md_by_instru_dir: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, futures_by_instrument_dir: str, major_minor_db_name: str, md_by_instru_dir: str, **kwargs):
+        super().__init__(**kwargs)
         self.manager_major_minor = CDbByInstrument(futures_by_instrument_dir, major_minor_db_name)
         self.manager_md = CMdByInstrument(self.universe, md_by_instru_dir, "MDC")
 
 
 class CFactorsWithInstruVolume(CFactors):
-    def __init__(self,
-                 futures_by_instrument_dir: str, instrument_volume_db_name: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, futures_by_instrument_dir: str, instrument_volume_db_name: str, **kwargs):
+        super().__init__(**kwargs)
         self.manager_instru_volume = CDbByInstrument(futures_by_instrument_dir, instrument_volume_db_name)
 
 
 class CFactorsWithInstruVolumeAndInstruMember(CFactors):
-    def __init__(self,
-                 futures_by_instrument_dir: str, instrument_volume_db_name: str, instrument_member_db_name: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, futures_by_instrument_dir: str, instrument_volume_db_name: str, instrument_member_db_name: str, **kwargs):
+        super().__init__(**kwargs)
         self.manager_instru_volume = CDbByInstrument(futures_by_instrument_dir, instrument_volume_db_name)
         self.manager_instru_member = CDbByInstrument(futures_by_instrument_dir, instrument_member_db_name)
 

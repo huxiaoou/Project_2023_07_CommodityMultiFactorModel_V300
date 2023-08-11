@@ -74,7 +74,6 @@ portfolio_dir = research_project_data_dir
 instruments_return_dir = os.path.join(factors_library_dir, "instruments_return")
 available_universe_dir = os.path.join(factors_library_dir, "available_universe")
 test_return_dir = os.path.join(factors_library_dir, "test_return")
-test_return_neutral_dir = os.path.join(factors_library_dir, "test_return_neutral")
 factors_exposure_dir = os.path.join(factors_library_dir, "factors_exposure")
 factors_exposure_neutral_dir = os.path.join(factors_library_dir, "factors_exposure_neutral")
 factors_exposure_corr_dir = os.path.join(factors_library_dir, "factors_exposure_corr")

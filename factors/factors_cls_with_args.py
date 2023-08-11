@@ -3,8 +3,7 @@ import itertools as ittl
 import multiprocessing as mp
 import numpy as np
 import pandas as pd
-from skyrim.whiterun import CCalendarMonthly, SetFontGreen
-from skyrim.falkreath import CLib1Tab1
+from skyrim.whiterun import SetFontGreen
 from factors.factors_cls_base import (CFactorsWithMajorReturn, CFactorsWithMajorReturnAndArgWin, CFactorsWithMajorReturnAndMarketReturn,
                                       CFactorsWithMajorReturnAndExchangeRate, CFactorsWithMajorReturnAndMacroEconomic)
 
@@ -307,6 +306,7 @@ class CMpFactorWithArgWin(object):
     def mp_cal_factor(self, **kwargs):
         t0 = dt.datetime.now()
         pool = mp.Pool(processes=self.proc_num)
+
         for arg_win in self.arg_wins:
             if self.factor_type == "SKEW":
                 transformer = CFactorsSKEW(arg_win, **kwargs)
@@ -343,12 +343,8 @@ class CMpFactorWithArgWin(object):
 
 
 class CFactorsMACD(CFactorsWithMajorReturn):
-    def __init__(self, fast: int, slow: int, alpha: float, ewm_bgn_date: str, futures_by_instrument_dir: str, major_return_db_name: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, fast: int, slow: int, alpha: float, ewm_bgn_date: str, **kwargs):
+        super().__init__(**kwargs)
         self.fast = fast
         self.slow = slow
         self.alpha = alpha
@@ -376,12 +372,8 @@ class CFactorsMACD(CFactorsWithMajorReturn):
 
 
 class CFactorsKDJ(CFactorsWithMajorReturn):
-    def __init__(self, n: int, ewm_bgn_date: str, futures_by_instrument_dir: str, major_return_db_name: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, n: int, ewm_bgn_date: str, **kwargs):
+        super().__init__(**kwargs)
         self.n = n
         self.ewm_bgn_date = ewm_bgn_date
 
@@ -409,12 +401,8 @@ class CFactorsKDJ(CFactorsWithMajorReturn):
 
 
 class CFactorsRSI(CFactorsWithMajorReturn):
-    def __init__(self, n: int, ewm_bgn_date: str, futures_by_instrument_dir: str, major_return_db_name: str,
-                 concerned_instruments_universe: list[str],
-                 factors_exposure_dst_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
-                 calendar: CCalendarMonthly, ):
-        super().__init__(futures_by_instrument_dir, major_return_db_name, concerned_instruments_universe, factors_exposure_dst_dir, database_structure, calendar)
+    def __init__(self, n: int, ewm_bgn_date: str, **kwargs):
+        super().__init__(**kwargs)
         self.n = n
         self.ewm_bgn_date = ewm_bgn_date
 

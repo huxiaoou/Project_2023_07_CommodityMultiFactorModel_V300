@@ -1,9 +1,10 @@
 import datetime as dt
 import numpy as np
 import pandas as pd
-from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriterByDate
-from skyrim.whiterun import CCalendar, SetFontGreen, SetFontRed
+from struct_lib.returns_and_exposure import get_lib_struct_available_universe, get_lib_struct_test_return, get_lib_struct_test_return_neutral
 from factors.factors_shared import neutralize_by_sector
+from skyrim.falkreath import CManagerLibReader, CManagerLibWriterByDate
+from skyrim.whiterun import CCalendar, SetFontGreen, SetFontRed
 
 
 def cal_test_return_neutral(
@@ -13,14 +14,12 @@ def cal_test_return_neutral(
         available_universe_dir,
         sector_classification: dict[str, str],
         test_return_dir: str,
-        test_return_neutral_dir: str,
-        database_structure: dict[str, CLib1Tab1],
         calendar: CCalendar,
 ):
     _weight_id = "amount"
 
     # --- available universe
-    available_universe_lib_structure = database_structure["available_universe"]
+    available_universe_lib_structure = get_lib_struct_available_universe()
     available_universe_lib = CManagerLibReader(t_db_name=available_universe_lib_structure.m_lib_name, t_db_save_dir=available_universe_dir)
     available_universe_lib.set_default(available_universe_lib_structure.m_tab.m_table_name)
 
@@ -31,15 +30,13 @@ def cal_test_return_neutral(
     sector_df = pd.DataFrame.from_dict({z: {sector_classification[z]: 1} for z in instruments_universe}, orient="index").fillna(0)
 
     # --- test return library
-    test_return_lib_id = "test_return"
-    test_return_lib_structure = database_structure[test_return_lib_id]
+    test_return_lib_structure = get_lib_struct_test_return()
     test_return_lib = CManagerLibReader(t_db_name=test_return_lib_structure.m_lib_name, t_db_save_dir=test_return_dir)
     test_return_lib.set_default(test_return_lib_structure.m_tab.m_table_name)
 
     # --- test return neutral library
-    test_return_neutral_lib_id = f"test_return.{neutral_method}"
-    test_return_neutral_lib_structure = database_structure[test_return_neutral_lib_id]
-    test_return_neutral_lib = CManagerLibWriterByDate(t_db_name=test_return_neutral_lib_structure.m_lib_name, t_db_save_dir=test_return_neutral_dir)
+    test_return_neutral_lib_structure = get_lib_struct_test_return_neutral(neutral_method)
+    test_return_neutral_lib = CManagerLibWriterByDate(t_db_name=test_return_neutral_lib_structure.m_lib_name, t_db_save_dir=test_return_dir)
     test_return_neutral_lib.initialize_table(t_table=test_return_neutral_lib_structure.m_tab, t_remove_existence=run_mode in ["O"])
     dst_lib_is_continuous = test_return_neutral_lib.check_continuity(append_date=bgn_date, t_calendar=calendar) if run_mode in ["A"] else 0
     if dst_lib_is_continuous == 0:

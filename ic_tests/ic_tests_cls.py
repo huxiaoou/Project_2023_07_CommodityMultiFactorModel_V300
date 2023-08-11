@@ -2,6 +2,10 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
+from struct_lib.returns_and_exposure import (get_lib_struct_available_universe,
+                                             get_lib_struct_factor_exposure, get_lib_struct_factor_exposure_neutral,
+                                             get_lib_struct_test_return, get_lib_struct_test_return_neutral,
+                                             get_lib_struct_ic_test, get_lib_struct_ic_test_neutral)
 from skyrim.whiterun import CCalendar, SetFontGreen
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriter
 
@@ -9,19 +13,13 @@ from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriter
 class CICTests(object):
     def __init__(self, factor: str, ic_tests_dir: str,
                  available_universe_dir: str, exposure_dir: str, test_return_dir: str,
-                 database_structure: dict[str, CLib1Tab1],
                  calendar: CCalendar,
                  ):
         self.factor = factor
         self.available_universe_dir = available_universe_dir
 
-        self.database_structure = database_structure
         self.calendar = calendar
         self.dst_dir = ic_tests_dir
-
-        self.src_factor_exposure_lib_id = ""
-        self.src_test_return_lib_id = ""
-        self.ic_test_lib_id = ""
 
         self.exposure_dir = exposure_dir
         self.test_return_dir = test_return_dir
@@ -31,7 +29,13 @@ class CICTests(object):
         res = df[[x, y]].corr(method=method).at[x, y] if len(df) > 2 else 0
         return 0 if np.isnan(res) else res
 
-    def set_id(self):
+    def get_factor_exposure_struct(self) -> CLib1Tab1:
+        pass
+
+    def get_test_return_struct(self) -> CLib1Tab1:
+        pass
+
+    def get_ic_test_struct(self) -> CLib1Tab1:
         pass
 
     def get_bridge_dates(self, bgn_date: str, stp_date: str):
@@ -45,9 +49,9 @@ class CICTests(object):
         return base_bgn_date, bridge_dates_df
 
     def get_available_universe(self, base_bgn_date: str, stp_date: str) -> pd.DataFrame:
-        available_universe_lib_structure = self.database_structure["available_universe"]
-        available_universe_lib = CManagerLibReader(t_db_name=available_universe_lib_structure.m_lib_name, t_db_save_dir=self.available_universe_dir)
-        available_universe_lib.set_default(available_universe_lib_structure.m_tab.m_table_name)
+        available_universe_lib_struct = get_lib_struct_available_universe()
+        available_universe_lib = CManagerLibReader(t_db_name=available_universe_lib_struct.m_lib_name, t_db_save_dir=self.available_universe_dir)
+        available_universe_lib.set_default(available_universe_lib_struct.m_tab.m_table_name)
         available_universe_df = available_universe_lib.read_by_conditions(t_conditions=[
             ("trade_date", ">=", base_bgn_date),
             ("trade_date", "<", stp_date),
@@ -56,9 +60,9 @@ class CICTests(object):
         return available_universe_df
 
     def get_factor_exposure(self, base_bgn_date: str, stp_date: str) -> pd.DataFrame:
-        factor_lib_structure = self.database_structure[self.src_factor_exposure_lib_id]
-        factor_lib = CManagerLibReader(t_db_name=factor_lib_structure.m_lib_name, t_db_save_dir=self.exposure_dir)
-        factor_lib.set_default(factor_lib_structure.m_tab.m_table_name)
+        factor_lib_struct = self.get_factor_exposure_struct()
+        factor_lib = CManagerLibReader(t_db_name=factor_lib_struct.m_lib_name, t_db_save_dir=self.exposure_dir)
+        factor_lib.set_default(factor_lib_struct.m_tab.m_table_name)
         factor_df = factor_lib.read_by_conditions(t_conditions=[
             ("trade_date", ">=", base_bgn_date),
             ("trade_date", "<", stp_date),
@@ -67,9 +71,9 @@ class CICTests(object):
         return factor_df
 
     def get_test_return(self, bgn_date: str, stp_date: str) -> pd.DataFrame:
-        test_return_lib_structure = self.database_structure[self.src_test_return_lib_id]
-        test_return_lib = CManagerLibReader(t_db_name=test_return_lib_structure.m_lib_name, t_db_save_dir=self.test_return_dir)
-        test_return_lib.set_default(test_return_lib_structure.m_tab.m_table_name)
+        test_return_lib_struct = self.get_test_return_struct()
+        test_return_lib = CManagerLibReader(t_db_name=test_return_lib_struct.m_lib_name, t_db_save_dir=self.test_return_dir)
+        test_return_lib.set_default(test_return_lib_struct.m_tab.m_table_name)
         test_return_df = test_return_lib.read_by_conditions(t_conditions=[
             ("trade_date", ">=", bgn_date),
             ("trade_date", "<", stp_date),
@@ -79,22 +83,21 @@ class CICTests(object):
 
     def check_continuity(self, run_mode: str, bgn_date: str):
         if run_mode == "A":
-            ic_test_lib_structure = self.database_structure[self.ic_test_lib_id]
-            ic_test_lib = CManagerLibReader(t_db_name=ic_test_lib_structure.m_lib_name, t_db_save_dir=self.dst_dir)
-            return ic_test_lib.check_continuity(bgn_date, self.calendar, False, ic_test_lib_structure.m_tab.m_table_name)
+            ic_test_lib_struct = self.get_ic_test_struct()
+            ic_test_lib = CManagerLibReader(t_db_name=ic_test_lib_struct.m_lib_name, t_db_save_dir=self.dst_dir)
+            return ic_test_lib.check_continuity(bgn_date, self.calendar, False, ic_test_lib_struct.m_tab.m_table_name)
         else:
             return 0
 
     def save(self, update_df: pd.DataFrame, run_mode: str):
-        ic_test_lib_structure = self.database_structure[self.ic_test_lib_id]
-        ic_test_lib = CManagerLibWriter(t_db_name=ic_test_lib_structure.m_lib_name, t_db_save_dir=self.dst_dir)
-        ic_test_lib.initialize_table(t_table=ic_test_lib_structure.m_tab, t_remove_existence=run_mode in ["O"])
+        ic_test_lib_struct = self.get_ic_test_struct()
+        ic_test_lib = CManagerLibWriter(t_db_name=ic_test_lib_struct.m_lib_name, t_db_save_dir=self.dst_dir)
+        ic_test_lib.initialize_table(t_table=ic_test_lib_struct.m_tab, t_remove_existence=run_mode in ["O"])
         ic_test_lib.update(t_update_df=update_df, t_using_index=True)
         ic_test_lib.close()
         return 0
 
     def main(self, run_mode: str, bgn_date: str, stp_date: str):
-        self.set_id()
         if self.check_continuity(run_mode, bgn_date) == 0:
             base_bgn_date, bridge_dates_df = self.get_bridge_dates(bgn_date, stp_date)
             available_universe_df = self.get_available_universe(base_bgn_date, stp_date)
@@ -113,10 +116,14 @@ class CICTests(object):
 
 
 class CICTestsRaw(CICTests):
-    def set_id(self):
-        self.src_factor_exposure_lib_id = self.factor
-        self.src_test_return_lib_id = "test_return"
-        self.ic_test_lib_id = f"ic-{self.factor}"
+    def get_factor_exposure_struct(self) -> CLib1Tab1:
+        return get_lib_struct_factor_exposure(self.factor)
+
+    def get_test_return_struct(self) -> CLib1Tab1:
+        return get_lib_struct_test_return()
+
+    def get_ic_test_struct(self) -> CLib1Tab1:
+        return get_lib_struct_ic_test(self.factor)
 
 
 class CICTestsNeutral(CICTests):
@@ -124,28 +131,34 @@ class CICTestsNeutral(CICTests):
         super().__init__(**kwargs)
         self.neutral_method = neutral_method
 
-    def set_id(self):
-        self.src_factor_exposure_lib_id = f"{self.factor}_{self.neutral_method}"
-        self.src_test_return_lib_id = f"test_return.{self.neutral_method}"
-        self.ic_test_lib_id = f"ic-{self.factor}_{self.neutral_method}"
+    def get_factor_exposure_struct(self) -> CLib1Tab1:
+        return get_lib_struct_factor_exposure_neutral(self.factor, self.neutral_method)
+
+    def get_test_return_struct(self) -> CLib1Tab1:
+        return get_lib_struct_test_return_neutral(self.neutral_method)
+
+    def get_ic_test_struct(self) -> CLib1Tab1:
+        return get_lib_struct_ic_test_neutral(self.factor, self.neutral_method)
 
 
 def cal_ic_tests_mp(proc_num: int, factors: list[str],
                     ic_tests_dir: str,
                     available_universe_dir: str, exposure_dir: str, test_return_dir: str,
-                    database_structure: dict[str, CLib1Tab1], calendar: CCalendar,
+                    calendar: CCalendar,
                     neutral_method: str, **kwargs):
     t0 = dt.datetime.now()
     pool = mp.Pool(processes=proc_num)
     for factor in factors:
-        if neutral_method != "":
-            agent_tests = CICTestsNeutral(neutral_method, factor=factor, ic_tests_dir=ic_tests_dir, available_universe_dir=available_universe_dir,
-                                          exposure_dir=exposure_dir, test_return_dir=test_return_dir, database_structure=database_structure, calendar=calendar)
-        else:
+        if neutral_method == "RAW":
             agent_tests = CICTestsRaw(factor=factor, ic_tests_dir=ic_tests_dir, available_universe_dir=available_universe_dir,
-                                      exposure_dir=exposure_dir, test_return_dir=test_return_dir, database_structure=database_structure, calendar=calendar)
-
-        pool.apply_async(agent_tests.main, kwds=kwargs)
+                                      exposure_dir=exposure_dir, test_return_dir=test_return_dir, calendar=calendar)
+        elif neutral_method == "WS":
+            agent_tests = CICTestsNeutral(neutral_method, factor=factor, ic_tests_dir=ic_tests_dir, available_universe_dir=available_universe_dir,
+                                          exposure_dir=exposure_dir, test_return_dir=test_return_dir, calendar=calendar)
+        else:
+            agent_tests = None
+        if agent_tests is not None:
+            pool.apply_async(agent_tests.main, kwds=kwargs)
     pool.close()
     pool.join()
     t1 = dt.datetime.now()

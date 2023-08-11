@@ -2,9 +2,10 @@ import datetime as dt
 import multiprocessing as mp
 import numpy as np
 import pandas as pd
+from struct_lib.returns_and_exposure import get_lib_struct_factor_exposure, get_lib_struct_factor_exposure_neutral, get_lib_struct_available_universe
 from factors.factors_shared import transform_dist, neutralize_by_sector
 from skyrim.whiterun import SetFontGreen, CCalendar
-from skyrim.falkreath import CManagerLibReader, CManagerLibWriter, CLib1Tab1
+from skyrim.falkreath import CManagerLibReader, CManagerLibWriter
 
 
 def neutralize_one_factor_one_day(
@@ -21,33 +22,30 @@ def neutralize_one_factor_one_day(
     return factor_neutral_srs
 
 
-def neutralize_one_factor(src_factor: str,
-                          neutral_method: str,
+def neutralize_one_factor(src_factor: str, neutral_method: str,
                           run_mode: str, bgn_date: str, stp_date: str,
                           mother_universe_df: pd.DataFrame, sector_df: pd.DataFrame,
                           available_universe_dir: str,
                           factors_exposure_dir: str,
                           factors_exposure_neutral_dir: str,
-                          database_structure: dict[str, CLib1Tab1],
                           calendar: CCalendar, ):
     # --- factor neutral library
-    factor_neutral_lib_id = "{}_{}".format(src_factor, neutral_method)
-    factor_neutral_lib_structure = database_structure[factor_neutral_lib_id]
-    factor_neutral_lib = CManagerLibWriter(t_db_name=factor_neutral_lib_structure.m_lib_name, t_db_save_dir=factors_exposure_neutral_dir)
-    factor_neutral_lib.initialize_table(t_table=factor_neutral_lib_structure.m_tab, t_remove_existence=run_mode in ["O"])
+    factor_neutral_lib_struct = get_lib_struct_factor_exposure_neutral(src_factor, neutral_method)
+    factor_neutral_lib = CManagerLibWriter(t_db_name=factor_neutral_lib_struct.m_lib_name, t_db_save_dir=factors_exposure_neutral_dir)
+    factor_neutral_lib.initialize_table(t_table=factor_neutral_lib_struct.m_tab, t_remove_existence=run_mode in ["O"])
     is_continuous = factor_neutral_lib.check_continuity(append_date=bgn_date, t_calendar=calendar) if run_mode in ["A"] else 0
     if is_continuous == 0:
         __weight_id = "amount"
 
         # --- available universe
-        available_universe_lib_structure = database_structure["available_universe"]
-        available_universe_lib = CManagerLibReader(t_db_name=available_universe_lib_structure.m_lib_name, t_db_save_dir=available_universe_dir)
-        available_universe_lib.set_default(available_universe_lib_structure.m_tab.m_table_name)
+        available_universe_lib_struct = get_lib_struct_available_universe()
+        available_universe_lib = CManagerLibReader(t_db_name=available_universe_lib_struct.m_lib_name, t_db_save_dir=available_universe_dir)
+        available_universe_lib.set_default(available_universe_lib_struct.m_tab.m_table_name)
 
         # --- src factor library
-        src_factor_lib_structure = database_structure[src_factor]
-        src_factor_lib = CManagerLibReader(t_db_name=src_factor_lib_structure.m_lib_name, t_db_save_dir=factors_exposure_dir)
-        src_factor_lib.set_default(src_factor_lib_structure.m_tab.m_table_name)
+        src_factor_lib_struct = get_lib_struct_factor_exposure(src_factor)
+        src_factor_lib = CManagerLibReader(t_db_name=src_factor_lib_struct.m_lib_name, t_db_save_dir=factors_exposure_dir)
+        src_factor_lib.set_default(src_factor_lib_struct.m_tab.m_table_name)
 
         factor_df = src_factor_lib.read_by_conditions(t_conditions=[
             ("trade_date", ">=", bgn_date),
