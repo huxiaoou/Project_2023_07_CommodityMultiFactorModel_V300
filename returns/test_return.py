@@ -19,7 +19,7 @@ def cal_test_return(run_mode: str, bgn_date: str, stp_date: str | None,
     update_df = raw_return_df.stack().reset_index(level=1)
 
     # --- initialize lib
-    test_return_lib_structure = get_lib_struct_test_return()
+    test_return_lib_structure = get_lib_struct_test_return("test_return")
     test_return_lib = CManagerLibWriter(t_db_name=test_return_lib_structure.m_lib_name, t_db_save_dir=test_return_dir)
     test_return_lib.initialize_table(t_table=test_return_lib_structure.m_tab, t_remove_existence=run_mode in ["O"])
     dst_lib_is_continuous = test_return_lib.check_continuity(append_date=bgn_date, t_calendar=calendar) if run_mode in ["A"] else 0

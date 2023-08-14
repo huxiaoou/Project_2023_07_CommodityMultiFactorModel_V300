@@ -38,6 +38,9 @@ selected_neu_factors = (
     "SRLD063",
 )
 
+#
+uni_props = (0.2, 0.3, 0.4)
+
 # secondary parameters
 cost_rate = 5e-4
 cost_reservation = 0e-4

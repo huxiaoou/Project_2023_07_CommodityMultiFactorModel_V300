@@ -7,12 +7,12 @@ from setup_project import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_
                            md_by_instru_dir, fundamental_by_instru_dir,
                            instruments_return_dir, available_universe_dir, test_return_dir,
                            factors_exposure_dir, factors_exposure_neutral_dir, factors_exposure_corr_dir,
-                           signals_dir, ic_tests_dir, ic_tests_summary_dir,
+                           signals_hedge_test_dir, signals_portfolios_dir, ic_tests_dir, ic_tests_summary_dir,
                            calendar_path, instrument_info_path)
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification,
                             available_universe_options, neutral_method)
-from config_factor import factors_settings, factors, factors_classification, factors_group
-from config_portfolio import selected_raw_factors, selected_neu_factors
+from config_factor import factors_settings, factors, factors_neutral, factors_classification, factors_group
+from config_portfolio import selected_raw_factors, selected_neu_factors, uni_props
 from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
 
@@ -33,6 +33,7 @@ def parse_args():
         'icns': ic-tests-neutral-summary,
         'icc': ic-tests-comparison,
         'fecor': factor exposure correlation,
+        'sig': signals,
         }""")
     args_parser.add_argument("-m", "--mode", type=str, choices=("o", "a"), help="""run mode, available options = {'o', 'a'}""")
     args_parser.add_argument("-b", "--bgn", type=str, help="""begin date, must be provided if run_mode = 'a' else DO NOT provided.""")
@@ -42,6 +43,8 @@ def parse_args():
         'MTM',SIZE','OI','RS','BASIS','TS','LIQUID','SR','HR','NETOI','NETOIW','NETDOI','NETDOIW',
         'SKEW','VOL','RVOL','CV','CTP','CVP','CSP','BETA','VAL','CBETA','IBETA','MACD','KDJ','RSI',  
         }""")
+    args_parser.add_argument("-t", "--type", type=str, default="",
+                             help="""optional, must be provided if switch = 'sig', use this to decide which factor, available options = {'hedge', 'portfolio'}""")
     args_parser.add_argument("-p", "--process", type=int, default=5, help="""number of process to be called when calculating, default = 5""")
     args = args_parser.parse_args()
 
@@ -56,12 +59,13 @@ def parse_args():
     if (_stp_date is None) and (_bgn_date is not None):
         _stp_date = (dt.datetime.strptime(_bgn_date, "%Y%m%d") + dt.timedelta(days=1)).strftime("%Y%m%d")
     _factor = args.factor.upper() if _switch in ["FE"] else None
+    _sig_type = args.type.upper() if _switch in ["SIG"] else None
     _proc_num = args.process
-    return _switch, _run_mode, _bgn_date, _stp_date, _factor, _proc_num
+    return _switch, _run_mode, _bgn_date, _stp_date, _factor, _sig_type, _proc_num
 
 
 if __name__ == "__main__":
-    switch, run_mode, bgn_date, stp_date, factor, proc_num = parse_args()
+    switch, run_mode, bgn_date, stp_date, factor, sig_type, proc_num = parse_args()
 
     # some shared data
     calendar = CCalendarMonthly(calendar_path)
@@ -364,7 +368,7 @@ if __name__ == "__main__":
             test_return_dir=test_return_dir,
             calendar=calendar,
             run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date,
-            neutral_method="RAW",
+            neutral_method=None,
         )
     elif switch in ["ICN"]:
         from ic_tests.ic_tests_cls import cal_ic_tests_mp
@@ -390,9 +394,9 @@ if __name__ == "__main__":
         agent_summary.get_cumsum_mp(factors_group)
         agent_summary.plot_selected_factors_cumsum(selected_raw_factors)
     elif switch in ["ICNS"]:
-        from ic_tests.ic_tests_cls_summary import CICTestsSummaryNeutral
+        from ic_tests.ic_tests_cls_summary import CICTestsSummaryNeu
 
-        agent_summary = CICTestsSummaryNeutral(
+        agent_summary = CICTestsSummaryNeu(
             neutral_method=neutral_method,
             proc_num=proc_num, ic_tests_dir=ic_tests_dir,
             ic_tests_summary_dir=ic_tests_summary_dir,
@@ -418,5 +422,17 @@ if __name__ == "__main__":
             factors_exposure_neutral_dir=factors_exposure_neutral_dir,
             factors_exposure_corr_dir=factors_exposure_corr_dir,
             calendar=calendar, )
+    elif switch in ["SIG"]:
+        from signals.signals_cls import cal_signals_mp
+
+        if sig_type == "HEDGE":
+            cal_signals_mp(proc_num=proc_num, factors=factors, uni_props=uni_props,
+                           available_universe_dir=available_universe_dir, signals_save_dir=signals_hedge_test_dir,
+                           src_factor_dir=factors_exposure_dir, calendar=calendar, tips="signals-raw",
+                           run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
+            cal_signals_mp(proc_num=proc_num, factors=factors_neutral, uni_props=uni_props,
+                           available_universe_dir=available_universe_dir, signals_save_dir=signals_hedge_test_dir,
+                           src_factor_dir=factors_exposure_neutral_dir, calendar=calendar, tips=f"signals-{neutral_method}",
+                           run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
     else:
         print(f"... switch = {switch} is not a legal option, please check again.")

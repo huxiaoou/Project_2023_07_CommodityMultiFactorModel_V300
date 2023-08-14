@@ -1,7 +1,7 @@
 import datetime as dt
 import numpy as np
 import pandas as pd
-from struct_lib.returns_and_exposure import get_lib_struct_available_universe, get_lib_struct_test_return, get_lib_struct_test_return_neutral
+from struct_lib.returns_and_exposure import get_lib_struct_available_universe, get_lib_struct_test_return
 from factors.factors_shared import neutralize_by_sector
 from skyrim.falkreath import CManagerLibReader, CManagerLibWriterByDate
 from skyrim.whiterun import CCalendar, SetFontGreen, SetFontRed
@@ -30,12 +30,12 @@ def cal_test_return_neutral(
     sector_df = pd.DataFrame.from_dict({z: {sector_classification[z]: 1} for z in instruments_universe}, orient="index").fillna(0)
 
     # --- test return library
-    test_return_lib_structure = get_lib_struct_test_return()
+    test_return_lib_structure = get_lib_struct_test_return("test_return")
     test_return_lib = CManagerLibReader(t_db_name=test_return_lib_structure.m_lib_name, t_db_save_dir=test_return_dir)
     test_return_lib.set_default(test_return_lib_structure.m_tab.m_table_name)
 
     # --- test return neutral library
-    test_return_neutral_lib_structure = get_lib_struct_test_return_neutral(neutral_method)
+    test_return_neutral_lib_structure = get_lib_struct_test_return(f"test_return_{neutral_method}")
     test_return_neutral_lib = CManagerLibWriterByDate(t_db_name=test_return_neutral_lib_structure.m_lib_name, t_db_save_dir=test_return_dir)
     test_return_neutral_lib.initialize_table(t_table=test_return_neutral_lib_structure.m_tab, t_remove_existence=run_mode in ["O"])
     dst_lib_is_continuous = test_return_neutral_lib.check_continuity(append_date=bgn_date, t_calendar=calendar) if run_mode in ["A"] else 0

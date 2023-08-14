@@ -2,7 +2,7 @@ import datetime as dt
 import multiprocessing as mp
 import numpy as np
 import pandas as pd
-from struct_lib.returns_and_exposure import get_lib_struct_factor_exposure, get_lib_struct_factor_exposure_neutral, get_lib_struct_available_universe
+from struct_lib.returns_and_exposure import get_lib_struct_factor_exposure, get_lib_struct_available_universe
 from factors.factors_shared import transform_dist, neutralize_by_sector
 from skyrim.whiterun import SetFontGreen, CCalendar
 from skyrim.falkreath import CManagerLibReader, CManagerLibWriter
@@ -30,7 +30,7 @@ def neutralize_one_factor(src_factor: str, neutral_method: str,
                           factors_exposure_neutral_dir: str,
                           calendar: CCalendar, ):
     # --- factor neutral library
-    factor_neutral_lib_struct = get_lib_struct_factor_exposure_neutral(src_factor, neutral_method)
+    factor_neutral_lib_struct = get_lib_struct_factor_exposure(f"{src_factor}_{neutral_method}")
     factor_neutral_lib = CManagerLibWriter(t_db_name=factor_neutral_lib_struct.m_lib_name, t_db_save_dir=factors_exposure_neutral_dir)
     factor_neutral_lib.initialize_table(t_table=factor_neutral_lib_struct.m_tab, t_remove_existence=run_mode in ["O"])
     is_continuous = factor_neutral_lib.check_continuity(append_date=bgn_date, t_calendar=calendar) if run_mode in ["A"] else 0

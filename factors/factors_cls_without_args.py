@@ -117,7 +117,7 @@ class CFactorsLIQUID(CFactorsWithMajorReturn):
             t_using_default_table=False, t_table_name=instrument.replace(".", "_"))
         db_reader.close()
         df.set_index("trade_date", inplace=True)
-        df["liquid"] = -df["major_return"].abs() * 1e8 / df["amount"]
+        df["liquid"] = df["major_return"].abs() * 1e8 / df["amount"]
         return df["liquid"]
 
 

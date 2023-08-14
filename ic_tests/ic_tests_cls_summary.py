@@ -4,7 +4,7 @@ import multiprocessing as mp
 import sqlite3
 import numpy as np
 import pandas as pd
-from struct_lib.returns_and_exposure import get_lib_struct_ic_test, get_lib_struct_ic_test_neutral
+from struct_lib.returns_and_exposure import get_lib_struct_ic_test
 from skyrim.whiterun import SetFontGreen
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader
 from skyrim.winterhold import plot_lines
@@ -154,14 +154,14 @@ class CICTestsSummaryRaw(CICTestsSummary):
         return f"ic_selected_factors-raw"
 
 
-class CICTestsSummaryNeutral(CICTestsSummary):
+class CICTestsSummaryNeu(CICTestsSummary):
 
     def __init__(self, neutral_method: str, **kwargs):
         super().__init__(**kwargs)
         self.neutral_method = neutral_method
 
     def _get_ic_test_struct(self, factor: str) -> CLib1Tab1:
-        return get_lib_struct_ic_test_neutral(factor, self.neutral_method)
+        return get_lib_struct_ic_test(f"{factor}_{self.neutral_method}")
 
     def _get_subclass_id(self) -> str:
         return self.neutral_method

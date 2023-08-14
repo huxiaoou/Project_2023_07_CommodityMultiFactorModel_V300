@@ -102,7 +102,6 @@ if __name__ == "__main__":
     check_and_mkdir(instruments_return_dir)
     check_and_mkdir(available_universe_dir)
     check_and_mkdir(test_return_dir)
-    check_and_mkdir(test_return_neutral_dir)
     check_and_mkdir(factors_exposure_dir)
     check_and_mkdir(factors_exposure_neutral_dir)
     check_and_mkdir(factors_exposure_corr_dir)

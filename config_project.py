@@ -18,6 +18,8 @@ bgn_dates_in_overwrite_mod = {
     "IC": "20150701",  # ic-test
     "ICN": "20150701",  # ic-test-neutral
     "FECOR": "20150701",  # factors correlation
+
+    "SIG": "20150701",  # signals
 }
 
 # universe
@@ -129,11 +131,6 @@ sector_classification = {
     "AP.CZC": "MISC",
     "CJ.CZC": "MISC",
 }
-
-# --- test return ---
-test_windows = [5, 10, 15, 20]  # 4
-test_lag = 1
-
 
 # neutral methods
 neutral_method = "WS"

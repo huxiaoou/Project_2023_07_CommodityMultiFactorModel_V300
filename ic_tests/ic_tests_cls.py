@@ -3,9 +3,8 @@ import numpy as np
 import pandas as pd
 import multiprocessing as mp
 from struct_lib.returns_and_exposure import (get_lib_struct_available_universe,
-                                             get_lib_struct_factor_exposure, get_lib_struct_factor_exposure_neutral,
-                                             get_lib_struct_test_return, get_lib_struct_test_return_neutral,
-                                             get_lib_struct_ic_test, get_lib_struct_ic_test_neutral)
+                                             get_lib_struct_factor_exposure, get_lib_struct_test_return,
+                                             get_lib_struct_ic_test, )
 from skyrim.whiterun import CCalendar, SetFontGreen
 from skyrim.falkreath import CLib1Tab1, CManagerLibReader, CManagerLibWriter
 
@@ -120,51 +119,48 @@ class CICTestsRaw(CICTests):
         return get_lib_struct_factor_exposure(self.factor)
 
     def get_test_return_struct(self) -> CLib1Tab1:
-        return get_lib_struct_test_return()
+        return get_lib_struct_test_return("test_return")
 
     def get_ic_test_struct(self) -> CLib1Tab1:
         return get_lib_struct_ic_test(self.factor)
 
 
-class CICTestsNeutral(CICTests):
+class CICTestsNeu(CICTests):
     def __init__(self, neutral_method: str, **kwargs):
         super().__init__(**kwargs)
         self.neutral_method = neutral_method
 
     def get_factor_exposure_struct(self) -> CLib1Tab1:
-        return get_lib_struct_factor_exposure_neutral(self.factor, self.neutral_method)
+        return get_lib_struct_factor_exposure(f"{self.factor}_{self.neutral_method}")
 
     def get_test_return_struct(self) -> CLib1Tab1:
-        return get_lib_struct_test_return_neutral(self.neutral_method)
+        return get_lib_struct_test_return(f"test_return_{self.neutral_method}")
 
     def get_ic_test_struct(self) -> CLib1Tab1:
-        return get_lib_struct_ic_test_neutral(self.factor, self.neutral_method)
+        return get_lib_struct_ic_test(f"{self.factor}_{self.neutral_method}")
 
 
 def cal_ic_tests_mp(proc_num: int, factors: list[str],
                     ic_tests_dir: str,
                     available_universe_dir: str, exposure_dir: str, test_return_dir: str,
                     calendar: CCalendar,
-                    neutral_method: str, **kwargs):
+                    neutral_method: str | None, **kwargs):
     t0 = dt.datetime.now()
     pool = mp.Pool(processes=proc_num)
     for factor in factors:
-        if neutral_method == "RAW":
+        if neutral_method is None:
             agent_tests = CICTestsRaw(factor=factor, ic_tests_dir=ic_tests_dir, available_universe_dir=available_universe_dir,
                                       exposure_dir=exposure_dir, test_return_dir=test_return_dir, calendar=calendar)
+            pool.apply_async(agent_tests.main, kwds=kwargs)
         elif neutral_method == "WS":
-            agent_tests = CICTestsNeutral(neutral_method, factor=factor, ic_tests_dir=ic_tests_dir, available_universe_dir=available_universe_dir,
-                                          exposure_dir=exposure_dir, test_return_dir=test_return_dir, calendar=calendar)
-        else:
-            agent_tests = None
-        if agent_tests is not None:
+            agent_tests = CICTestsNeu(neutral_method=neutral_method,
+                                      factor=factor, ic_tests_dir=ic_tests_dir, available_universe_dir=available_universe_dir,
+                                      exposure_dir=exposure_dir, test_return_dir=test_return_dir, calendar=calendar)
             pool.apply_async(agent_tests.main, kwds=kwargs)
     pool.close()
     pool.join()
     t1 = dt.datetime.now()
-    if neutral_method != "":
-        print(f"... {SetFontGreen(f'IC-test-{neutral_method}')} calculated")
-    else:
-        print(f"... {SetFontGreen(f'IC-test')} calculated")
+    tips = 'IC-test-RAW' if neutral_method is None else f'IC-test-{neutral_method}'
+    print(f"... {SetFontGreen(tips)} calculated")
     print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
     return 0
