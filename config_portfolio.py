@@ -44,11 +44,16 @@ uni_props = (0.2, 0.3, 0.4)
 # secondary parameters
 cost_rate_hedge_test = 0e-4
 cost_rate_portfolios = 5e-4
-cost_reservation = 0e-4
 risk_free_rate = 0
-top_n = 5
-init_premium = 10000 * 1e4
-minimum_abs_weight = 0.001
+performance_indicators = [
+    "hold_period_return",
+    "annual_return",
+    "annual_volatility",
+    "sharpe_ratio",
+    "calmar_ratio",
+    "max_drawdown_scale",
+    "max_drawdown_scale_idx",
+]
 
 if __name__ == "__main__":
     print("Total number of factors = {}".format(len(factors)))  # 103

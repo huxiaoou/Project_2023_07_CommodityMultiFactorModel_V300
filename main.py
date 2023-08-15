@@ -8,8 +8,8 @@ from setup_project import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_
                            md_by_instru_dir, fundamental_by_instru_dir,
                            instruments_return_dir, available_universe_dir, test_return_dir,
                            factors_exposure_dir, factors_exposure_neutral_dir, factors_exposure_corr_dir,
-                           signals_hedge_test_dir, simulations_hedge_test_dir,
-                           signals_portfolios_dir, simulations_portfolios_dir,
+                           signals_hedge_test_dir, simulations_hedge_test_dir, evaluations_hedge_test_dir,
+                           signals_portfolios_dir, simulations_portfolios_dir, evaluations_portfolios_dir,
                            ic_tests_dir, ic_tests_summary_dir,
                            calendar_path, instrument_info_path)
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification,
@@ -37,6 +37,8 @@ def parse_args():
         'icc': ic-tests-comparison,
         'fecor': factor exposure correlation,
         'sig': signals,
+        'simu': simulations,
+        'eval': evaluations,
         }""")
     args_parser.add_argument("-m", "--mode", type=str, choices=("o", "a"), help="""run mode, available options = {'o', 'a'}""")
     args_parser.add_argument("-b", "--bgn", type=str, help="""begin date, must be provided if run_mode = 'a' else DO NOT provided.""")
@@ -47,12 +49,12 @@ def parse_args():
         'SKEW','VOL','RVOL','CV','CTP','CVP','CSP','BETA','VAL','CBETA','IBETA','MACD','KDJ','RSI',  
         }""")
     args_parser.add_argument("-t", "--type", type=str, default="",
-                             help="""optional, must be provided if switch in ('sig','simu'), use this to decide type of signal/simulation, available options = {'hedge', 'portfolio'}""")
+                             help="""optional, must be provided if switch in ('sig','simu','eval'), use this to decide type of signal/simulation, available options = {'hedge', 'portfolio'}""")
     args_parser.add_argument("-p", "--process", type=int, default=5, help="""number of process to be called when calculating, default = 5""")
     args = args_parser.parse_args()
 
     _switch = args.switch.upper()
-    if _switch in ["ICS", "ICNS", "ICC"]:
+    if _switch in ["ICS", "ICNS", "ICC", "EVAL"]:
         _run_mode = None
     elif _switch in ["IR", "MR", "FECOR", "SIMU"]:
         _run_mode = "O"
@@ -62,7 +64,7 @@ def parse_args():
     if (_stp_date is None) and (_bgn_date is not None):
         _stp_date = (dt.datetime.strptime(_bgn_date, "%Y%m%d") + dt.timedelta(days=1)).strftime("%Y%m%d")
     _factor = args.factor.upper() if _switch in ["FE"] else None
-    _sig_type = args.type.upper() if _switch in ["SIG", "SIMU"] else None
+    _sig_type = args.type.upper() if _switch in ["SIG", "SIMU", "EVAL"] else None
     _proc_num = args.process
     return _switch, _run_mode, _bgn_date, _stp_date, _factor, _sig_type, _proc_num
 
@@ -451,6 +453,18 @@ if __name__ == "__main__":
                 futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name,
                 calendar=calendar, tips="Hedge test for factors"
             )
+    elif switch in ["EVAL"]:
+        from simulations.evaluations_cls import eval_hedge_mp
+        from config_portfolio import risk_free_rate, performance_indicators
 
+        if sig_type == "HEDGE":
+            eval_hedge_mp(proc_num=proc_num,
+                          factors=factors, factors_neutral=factors_neutral, uni_props=uni_props,
+                          factors_classification=factors_classification,
+                          indicators=performance_indicators,
+                          simu_save_dir=simulations_hedge_test_dir,
+                          eval_save_dir=evaluations_hedge_test_dir,
+                          annual_risk_free_rate=risk_free_rate
+                          )
     else:
         print(f"... switch = {switch} is not a legal option, please check again.")
