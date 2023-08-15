@@ -38,11 +38,12 @@ selected_neu_factors = (
     "SRLD063",
 )
 
-#
+# unilateral hold proportion
 uni_props = (0.2, 0.3, 0.4)
 
 # secondary parameters
-cost_rate = 5e-4
+cost_rate_hedge_test = 0e-4
+cost_rate_portfolios = 5e-4
 cost_reservation = 0e-4
 risk_free_rate = 0
 top_n = 5

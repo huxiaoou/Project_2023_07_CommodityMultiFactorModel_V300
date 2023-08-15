@@ -54,6 +54,27 @@ class CSignal(object):
             self.__save(update_df, run_mode, use_index=False)
         return 0
 
+    def get_id(self) -> str:
+        return self.sig_id
+
+    def get_signal_data(self, bgn_date: str, stp_date: str) -> pd.DataFrame:
+        sig_lib_reader = self.__get_sig_lib_reader()
+        sig_df = sig_lib_reader.read_by_conditions(t_conditions=[
+            ("trade_date", ">=", bgn_date),
+            ("trade_date", "<", stp_date),
+        ], t_value_columns=["trade_date", "instrument", "value"])
+        sig_lib_reader.close()
+        return sig_df
+
+
+class CSignalReader(CSignal):
+    def __init__(self, sig_id: str, **kwargs):
+        self.raw_id = sig_id
+        super().__init__(**kwargs)
+
+    def _set_id(self):
+        self.sig_id = self.raw_id
+
 
 class CSignalWithAvailableUniverse(CSignal):
     def __init__(self, available_universe_dir: str, **kwargs):
@@ -110,7 +131,7 @@ class CSignalHedge(CSignalFromSrcFactor):
         super().__init__(**kwargs)
 
     def _set_id(self):
-        self.sig_id = self.src_factor_id + f"_UHP{int(self.uni_prop * 10):02d}"
+        self.sig_id = f"{self.src_factor_id}_UHP{int(self.uni_prop * 10):02d}"
 
     def __cal_signal(self, df: pd.DataFrame):
         sorted_df = df[["instrument", "value"]].sort_values("value", ascending=False)
@@ -139,9 +160,9 @@ class CSignalHedge(CSignalFromSrcFactor):
         return update_df
 
 
-def cal_signals_mp(proc_num: int, factors: tuple[str], uni_props: tuple[str],
-                   available_universe_dir: str, signals_save_dir: str, src_factor_dir: str,
-                   calendar: CCalendar, tips: str, **kwargs):
+def cal_signals_hedge_mp(proc_num: int, factors: tuple[str], uni_props: tuple[str],
+                         available_universe_dir: str, signals_save_dir: str, src_factor_dir: str,
+                         calendar: CCalendar, tips: str, **kwargs):
     t0 = dt.datetime.now()
     pool = mp.Pool(processes=proc_num)
     for factor, uni_prop in ittl.product(factors, uni_props):

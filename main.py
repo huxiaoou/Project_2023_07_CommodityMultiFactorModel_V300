@@ -1,4 +1,5 @@
 import argparse
+import itertools as ittl
 import pandas as pd
 import datetime as dt
 from setup_project import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_rate_file,
@@ -7,12 +8,14 @@ from setup_project import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_
                            md_by_instru_dir, fundamental_by_instru_dir,
                            instruments_return_dir, available_universe_dir, test_return_dir,
                            factors_exposure_dir, factors_exposure_neutral_dir, factors_exposure_corr_dir,
-                           signals_hedge_test_dir, signals_portfolios_dir, ic_tests_dir, ic_tests_summary_dir,
+                           signals_hedge_test_dir, simulations_hedge_test_dir,
+                           signals_portfolios_dir, simulations_portfolios_dir,
+                           ic_tests_dir, ic_tests_summary_dir,
                            calendar_path, instrument_info_path)
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification,
                             available_universe_options, neutral_method)
 from config_factor import factors_settings, factors, factors_neutral, factors_classification, factors_group
-from config_portfolio import selected_raw_factors, selected_neu_factors, uni_props
+from config_portfolio import selected_raw_factors, selected_neu_factors, uni_props, cost_rate_hedge_test, cost_rate_portfolios
 from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
 
@@ -44,14 +47,14 @@ def parse_args():
         'SKEW','VOL','RVOL','CV','CTP','CVP','CSP','BETA','VAL','CBETA','IBETA','MACD','KDJ','RSI',  
         }""")
     args_parser.add_argument("-t", "--type", type=str, default="",
-                             help="""optional, must be provided if switch = 'sig', use this to decide which factor, available options = {'hedge', 'portfolio'}""")
+                             help="""optional, must be provided if switch in ('sig','simu'), use this to decide type of signal/simulation, available options = {'hedge', 'portfolio'}""")
     args_parser.add_argument("-p", "--process", type=int, default=5, help="""number of process to be called when calculating, default = 5""")
     args = args_parser.parse_args()
 
     _switch = args.switch.upper()
     if _switch in ["ICS", "ICNS", "ICC"]:
         _run_mode = None
-    elif _switch in ["IR", "MR", "FECOR"]:
+    elif _switch in ["IR", "MR", "FECOR", "SIMU"]:
         _run_mode = "O"
     else:
         _run_mode = args.mode.upper()
@@ -59,7 +62,7 @@ def parse_args():
     if (_stp_date is None) and (_bgn_date is not None):
         _stp_date = (dt.datetime.strptime(_bgn_date, "%Y%m%d") + dt.timedelta(days=1)).strftime("%Y%m%d")
     _factor = args.factor.upper() if _switch in ["FE"] else None
-    _sig_type = args.type.upper() if _switch in ["SIG"] else None
+    _sig_type = args.type.upper() if _switch in ["SIG", "SIMU"] else None
     _proc_num = args.process
     return _switch, _run_mode, _bgn_date, _stp_date, _factor, _sig_type, _proc_num
 
@@ -423,16 +426,31 @@ if __name__ == "__main__":
             factors_exposure_corr_dir=factors_exposure_corr_dir,
             calendar=calendar, )
     elif switch in ["SIG"]:
-        from signals.signals_cls import cal_signals_mp
+        from signals.signals_cls import cal_signals_hedge_mp
 
         if sig_type == "HEDGE":
-            cal_signals_mp(proc_num=proc_num, factors=factors, uni_props=uni_props,
-                           available_universe_dir=available_universe_dir, signals_save_dir=signals_hedge_test_dir,
-                           src_factor_dir=factors_exposure_dir, calendar=calendar, tips="signals-raw",
-                           run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
-            cal_signals_mp(proc_num=proc_num, factors=factors_neutral, uni_props=uni_props,
-                           available_universe_dir=available_universe_dir, signals_save_dir=signals_hedge_test_dir,
-                           src_factor_dir=factors_exposure_neutral_dir, calendar=calendar, tips=f"signals-{neutral_method}",
-                           run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
+            cal_signals_hedge_mp(proc_num=proc_num, factors=factors, uni_props=uni_props,
+                                 available_universe_dir=available_universe_dir, signals_save_dir=signals_hedge_test_dir,
+                                 src_factor_dir=factors_exposure_dir, calendar=calendar, tips="signals-raw",
+                                 run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
+            cal_signals_hedge_mp(proc_num=proc_num, factors=factors_neutral, uni_props=uni_props,
+                                 available_universe_dir=available_universe_dir, signals_save_dir=signals_hedge_test_dir,
+                                 src_factor_dir=factors_exposure_neutral_dir, calendar=calendar, tips=f"signals-{neutral_method}",
+                                 run_mode=run_mode, bgn_date=bgn_date, stp_date=stp_date)
+    elif switch in ["SIMU"]:
+        from simulations.simulation_cls import cal_simulations_mp
+
+        if sig_type == "HEDGE":
+            sig_ids = [f"{sid}_UHP{int(uni_prop * 10):02d}"
+                       for sid, uni_prop in ittl.product(factors + factors_neutral, uni_props)]
+            cal_simulations_mp(
+                proc_num=proc_num,
+                sig_ids=sig_ids, test_bgn_date=bgn_date, test_stp_date=stp_date,
+                cost_rate=cost_rate_hedge_test, test_universe=concerned_instruments_universe,
+                signals_dir=signals_hedge_test_dir, simulations_dir=simulations_hedge_test_dir,
+                futures_by_instrument_dir=futures_by_instrument_dir, major_return_db_name=major_return_db_name,
+                calendar=calendar, tips="Hedge test for factors"
+            )
+
     else:
         print(f"... switch = {switch} is not a legal option, please check again.")
