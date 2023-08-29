@@ -38,6 +38,48 @@ selected_neu_factors = (
     "SRLD063",
 )
 
+selected_raw_factors_and_uni_prop = (
+    ("BASISA063", 0.3),
+    ("BASISBD126", 0.2),
+    ("CSP063", 0.3),
+    ("CSP189LD021", 0.4),
+    ("CTP126", 0.4),
+    ("CTP189LD021", 0.4),
+    ("CVP126", 0.3),
+    ("CVP189LD021", 0.4),
+    ("RSBR189", 0.4),
+    ("RSLR252", 0.3),
+    ("SKEW010", 0.4),
+    ("SKEW010LD063", 0.4),
+    ("HRA063", 0.4),
+    ("SRLD063", 0.3),
+    ("TSA063", 0.4),
+    ("TSBD010", 0.4),
+    ("LIQUIDBD010", 0.2),
+    ("NETDOI", 0.2),
+    ("NETDOIBD126", 0.2),
+)
+
+selected_neu_factors_and_uni_prop =(
+    ("BASISA063", 0.4),
+    ("BASISBD010", 0.4),
+    ("CSP189", 0.4),
+    ("CSP126LD021", 0.4),
+    ("CTP126", 0.4),
+    ("CTP189LD063", 0.4),
+    ("CVP126", 0.2),
+    ("CVP189LD063", 0.4),
+    ("CV021LD021", 0.2),
+    ("LIQUIDBD010", 0.3),
+    ("MTM", 0.4),
+    ("NETDOIWA021", 0.3),
+    ("RSLR252", 0.3),
+    ("RSBR252", 0.3),
+    ("RSI010", 0.4),
+    ("SKEW010", 0.4),
+    ("SKEW010LD063", 0.4),
+)
+
 # unilateral hold proportion
 uni_props = (0.2, 0.3, 0.4)
 

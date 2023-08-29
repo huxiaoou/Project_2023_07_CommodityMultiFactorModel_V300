@@ -15,7 +15,9 @@ from setup_project import (macro_economic_dir, cpi_m2_file, forex_dir, exchange_
 from config_project import (bgn_dates_in_overwrite_mod, concerned_instruments_universe, sector_classification,
                             available_universe_options, neutral_method)
 from config_factor import factors_settings, factors, factors_neutral, factors_classification, factors_group
-from config_portfolio import selected_raw_factors, selected_neu_factors, uni_props, cost_rate_hedge_test, cost_rate_portfolios
+from config_portfolio import (selected_raw_factors, selected_neu_factors, uni_props,
+                              selected_raw_factors_and_uni_prop, selected_neu_factors_and_uni_prop,
+                              cost_rate_hedge_test, cost_rate_portfolios)
 from skyrim.whiterun import CCalendarMonthly, CInstrumentInfoTable
 
 
@@ -417,10 +419,20 @@ if __name__ == "__main__":
     elif switch in ["FECOR"]:
         from factors.factors_exposure_corr import cal_factors_exposure_corr
 
-        test_factor_list_l = ["SKEW010", "SKEW126"]
+        # test_factor_list_l = ["SKEW010", "SKEW126"]
+        # test_factor_list_l = ["BASISA063", "BASISBD010"]
+        # test_factor_list_l = ["CSP189", "CSP126LD021"]
+        # test_factor_list_l = ["CTP126", "CTP189LD063"]
+        # test_factor_list_l = ["CTP126", "CSP189"]
+        # test_factor_list_l = ["CVP126", "CVP189LD021"]
+        # test_factor_list_l = ["RSLR252", "RSBR252"]
+        test_factor_list_l = ["SKEW010", "SKEW010LD063"]
         test_factor_list_r = []
+
+        test_neutral_method = "WS"
+
         cal_factors_exposure_corr(
-            neutral_method="",
+            neutral_method=test_neutral_method,
             test_factor_list_l=test_factor_list_l, test_factor_list_r=test_factor_list_r,
             bgn_date=bgn_date, stp_date=stp_date,
             factors_exposure_dir=factors_exposure_dir,
@@ -454,7 +466,7 @@ if __name__ == "__main__":
                 calendar=calendar, tips="Hedge test for factors"
             )
     elif switch in ["EVAL"]:
-        from simulations.evaluations_cls import eval_hedge_mp
+        from simulations.evaluations_cls import eval_hedge_mp, concat_eval_results, plot_selected_factors_and_uni_prop
         from config_portfolio import risk_free_rate, performance_indicators
 
         if sig_type == "HEDGE":
@@ -466,5 +478,12 @@ if __name__ == "__main__":
                           eval_save_dir=evaluations_hedge_test_dir,
                           annual_risk_free_rate=risk_free_rate
                           )
+            concat_eval_results(uni_props, evaluations_hedge_test_dir)
+            plot_selected_factors_and_uni_prop(
+                selected_raw_factors_and_uni_prop, "raw", simulations_hedge_test_dir, evaluations_hedge_test_dir
+            )
+            plot_selected_factors_and_uni_prop(
+                selected_neu_factors_and_uni_prop, "neu", simulations_hedge_test_dir, evaluations_hedge_test_dir
+            )
     else:
         print(f"... switch = {switch} is not a legal option, please check again.")
