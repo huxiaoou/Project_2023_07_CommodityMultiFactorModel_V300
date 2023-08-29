@@ -4,7 +4,7 @@ from setup_project import (calendar_path, instrument_info_path, md_by_instru_dir
                            signals_hedge_test_dir, simulations_hedge_test_dir, factors_exposure_dir, factors_exposure_neutral_dir,
                            futures_by_instrument_dir, major_return_db_name)
 
-test_id = ["sig", "simu", "simu2"][1]
+test_id = ["sig", "simu", "simu2"][0]
 
 if test_id == "sig":
     from signals.signals_cls import CSignalHedge, CCalendar
@@ -13,7 +13,6 @@ if test_id == "sig":
     calendar = CCalendar(calendar_path)
     shared_args = dict(available_universe_dir=available_universe_dir, sig_save_dir=signals_hedge_test_dir, calendar=calendar)
     s = CSignalHedge(uni_prop=0.2, src_factor_dir=factors_exposure_dir, src_factor_id="BASISA126", **shared_args)
-
     s.main(run_mode, bgn_date, stp_date)
 
     s = CSignalHedge(uni_prop=0.2, src_factor_dir=factors_exposure_neutral_dir, src_factor_id="BASISA126_WS", **shared_args)

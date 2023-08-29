@@ -10,15 +10,11 @@ from struct_lib.portfolios import get_signal_lib_struct
 
 
 class CSignal(object):
-    def __init__(self, sig_save_dir: str, calendar: CCalendar):
-        self.sig_id = "SigIdNotInit"
-        self._set_id()
+    def __init__(self, sig_id: str, sig_save_dir: str, calendar: CCalendar):
+        self.sig_id = sig_id
         self.sig_lib_struct = get_signal_lib_struct(self.sig_id)
         self.sig_save_dir = sig_save_dir
         self.calendar = calendar
-
-    def _set_id(self):
-        pass
 
     def __get_sig_lib_reader(self) -> CManagerLibReader:
         lib_reader = CManagerLibReader(self.sig_save_dir, self.sig_lib_struct.m_lib_name)
@@ -57,6 +53,8 @@ class CSignal(object):
     def get_id(self) -> str:
         return self.sig_id
 
+
+class CSignalReader(CSignal):
     def get_signal_data(self, bgn_date: str, stp_date: str) -> pd.DataFrame:
         sig_lib_reader = self.__get_sig_lib_reader()
         sig_df = sig_lib_reader.read_by_conditions(t_conditions=[
@@ -67,16 +65,7 @@ class CSignal(object):
         return sig_df
 
 
-class CSignalReader(CSignal):
-    def __init__(self, sig_id: str, **kwargs):
-        self.raw_id = sig_id
-        super().__init__(**kwargs)
-
-    def _set_id(self):
-        self.sig_id = self.raw_id
-
-
-class CSignalWithAvailableUniverse(CSignal):
+class CSignalWithAvailableUniverse(CSignalReader):
     def __init__(self, available_universe_dir: str, **kwargs):
         self.available_universe_dir = available_universe_dir
         self.available_universe_struct = get_lib_struct_available_universe()
@@ -98,7 +87,7 @@ class CSignalWithAvailableUniverse(CSignal):
 
 
 class CSignalFromSrcFactor(CSignalWithAvailableUniverse):
-    def __init__(self, src_factor_id: str, src_factor_dir: str, **kwargs):
+    def __init__(self, src_factor_id: str, src_factor_dir: str, sig_id: str, **kwargs):
         """
 
         :param src_factor_id: ("BASISA147", "BASISA147_WS")
@@ -108,7 +97,7 @@ class CSignalFromSrcFactor(CSignalWithAvailableUniverse):
         self.src_factor_id = src_factor_id
         self.src_factor_dir = src_factor_dir
         self.src_factor_lib_struct = get_lib_struct_factor_exposure(self.src_factor_id)
-        super().__init__(**kwargs)
+        super().__init__(sig_id=sig_id, **kwargs)
 
     def __get_src_factor_lib_reader(self) -> CManagerLibReader:
         lib_reader = CManagerLibReader(self.src_factor_dir, self.src_factor_lib_struct.m_lib_name)
@@ -126,16 +115,13 @@ class CSignalFromSrcFactor(CSignalWithAvailableUniverse):
 
 
 class CSignalHedge(CSignalFromSrcFactor):
-    def __init__(self, uni_prop: float, **kwargs):
+    def __init__(self, uni_prop: float, src_factor_id: str, src_factor_dir: str, **kwargs):
         self.uni_prop = uni_prop
-        super().__init__(**kwargs)
-
-    def _set_id(self):
-        self.sig_id = f"{self.src_factor_id}_UHP{int(self.uni_prop * 10):02d}"
+        sig_id = f"{src_factor_id}_UHP{int(uni_prop * 10):02d}"
+        super().__init__(src_factor_id, src_factor_dir, sig_id, **kwargs)
 
     def __cal_signal(self, df: pd.DataFrame):
         sorted_df = df[["instrument", "value"]].sort_values("value", ascending=False)
-
         k = len(df)
         k0 = int(np.round(k * self.uni_prop))
         rel_wgt = np.array([1] * k0 + [0] * (k - 2 * k0) + [-1] * k0)
