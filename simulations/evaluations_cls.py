@@ -80,6 +80,28 @@ def eval_hedge_mp(proc_num: int, factors: list[str], factors_neutral: list[str],
         pool.apply_async(agent_eval.main)
     pool.close()
     pool.join()
+
+    raw_dfs, neu_dfs = [], []
+    for uni_prop in uni_props:
+        uni_prop_lbl = f"UHP{int(uni_prop * 10):02d}"
+        sub_eval_raw_file = f"eval-factors_raw_{uni_prop_lbl}.csv"
+        sub_eval_neu_file = f"eval-factors_neu_{uni_prop_lbl}.csv"
+        sub_eval_raw_path = os.path.join(kwargs["eval_save_dir"], sub_eval_raw_file)
+        sub_eval_neu_path = os.path.join(kwargs["eval_save_dir"], sub_eval_neu_file)
+        sub_eval_raw_df = pd.read_csv(sub_eval_raw_path)
+        sub_eval_neu_df = pd.read_csv(sub_eval_neu_path)
+        sub_eval_raw_df["uni_prop"] = uni_prop
+        sub_eval_neu_df["uni_prop"] = uni_prop
+        raw_dfs.append(sub_eval_raw_df)
+        neu_dfs.append(sub_eval_neu_df)
+
+    raw_df_concat = pd.concat(raw_dfs, axis=0, ignore_index=True).sort_values(by=["factor", "sharpe_ratio"], ascending=[True, False])
+    neu_df_concat = pd.concat(neu_dfs, axis=0, ignore_index=True).sort_values(by=["factor", "sharpe_ratio"], ascending=[True, False])
+    raw_concat_file = os.path.join(kwargs["eval_save_dir"], "eval-factors_raw-concat.csv")
+    neu_concat_file = os.path.join(kwargs["eval_save_dir"], "eval-factors_neu-concat.csv")
+    raw_df_concat.to_csv(raw_concat_file, index=False, float_format="%.2f")
+    neu_df_concat.to_csv(neu_concat_file, index=False, float_format="%.2f")
+
     t1 = dt.datetime.now()
     print(f"... {SetFontGreen('Summary for Hedge Test')} calculated")
     print(f"... total time consuming:{SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
