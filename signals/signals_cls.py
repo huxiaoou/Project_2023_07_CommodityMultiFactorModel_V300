@@ -16,7 +16,7 @@ class CSignal(object):
         self.sig_save_dir = sig_save_dir
         self.calendar = calendar
 
-    def __get_sig_lib_reader(self) -> CManagerLibReader:
+    def _get_sig_lib_reader(self) -> CManagerLibReader:
         lib_reader = CManagerLibReader(self.sig_save_dir, self.sig_lib_struct.m_lib_name)
         lib_reader.set_default(self.sig_lib_struct.m_tab.m_table_name)
         return lib_reader
@@ -28,7 +28,7 @@ class CSignal(object):
 
     def __check_continuity(self, run_mode: str, bgn_date: str) -> int:
         if run_mode in ["A"]:
-            reader = self.__get_sig_lib_reader()
+            reader = self._get_sig_lib_reader()
             res = reader.check_continuity(bgn_date, self.calendar)
             reader.close()
             return res
@@ -56,7 +56,7 @@ class CSignal(object):
 
 class CSignalReader(CSignal):
     def get_signal_data(self, bgn_date: str, stp_date: str) -> pd.DataFrame:
-        sig_lib_reader = self.__get_sig_lib_reader()
+        sig_lib_reader = self._get_sig_lib_reader()
         sig_df = sig_lib_reader.read_by_conditions(t_conditions=[
             ("trade_date", ">=", bgn_date),
             ("trade_date", "<", stp_date),

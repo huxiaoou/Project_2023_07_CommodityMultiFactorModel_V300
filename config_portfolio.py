@@ -60,7 +60,7 @@ selected_raw_factors_and_uni_prop = (
     ("NETDOIBD126", 0.2),
 )
 
-selected_neu_factors_and_uni_prop =(
+selected_neu_factors_and_uni_prop = (
     ("BASISA063", 0.4),
     ("BASISBD010", 0.4),
     ("CSP189", 0.4),
@@ -69,16 +69,18 @@ selected_neu_factors_and_uni_prop =(
     ("CTP189LD063", 0.4),
     ("CVP126", 0.2),
     ("CVP189LD063", 0.4),
-    ("CV021LD021", 0.2),
     ("LIQUIDBD010", 0.3),
-    ("MTM", 0.4),
     ("NETDOIWA021", 0.3),
     ("RSLR252", 0.3),
-    ("RSBR252", 0.3),
-    ("RSI010", 0.4),
-    ("SKEW010", 0.4),
     ("SKEW010LD063", 0.4),
 )
+
+src_signal_ids_raw = [f"{fac}_UHP{int(uhp * 10):02d}" for fac, uhp in selected_raw_factors_and_uni_prop]
+src_signal_ids_neu = [f"{fac}_WS_UHP{int(uhp * 10):02d}" for fac, uhp in selected_neu_factors_and_uni_prop]
+size_raw, size_neu = len(src_signal_ids_raw), len(src_signal_ids_neu)
+trn_win, lbd = 12, 20
+min_model_days = int(trn_win * 21 * 0.9)
+test_portfolio_ids = ["raw_fix", "neu_fix", "raw_min_uty_con", "neu_min_uty_con"]
 
 # unilateral hold proportion
 uni_props = (0.2, 0.3, 0.4)

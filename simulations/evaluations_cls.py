@@ -35,21 +35,23 @@ class CEvaluation(object):
         # eval_df.set_index(indexes:list[str], inplace=True)
         pass
 
-    def __save(self, res_data: list[dict]):
+    def __save(self, res_data: list[dict], printout: bool = False):
         eval_df = pd.DataFrame(res_data)
         self._set_index(eval_df)
         eval_file = f"eval-{self.eval_id}.csv"
         eval_path = os.path.join(self.eval_save_dir, eval_file)
         eval_df[self.indicators].to_csv(eval_path, float_format="%.4f")
+        if printout:
+            print(eval_df[self.indicators])
         return 0
 
-    def main(self):
+    def main(self, printout: bool = False):
         res_data = []
         for simu_id in self.simu_ids:
             res = self.__get_performance_evaluation(simu_id)
             self._add_args_to(res, simu_id)
             res_data.append(res)
-        self.__save(res_data)
+        self.__save(res_data, printout)
         print(f"... @ {SetFontGreen(f'{dt.datetime.now()}')} nav evaluation for {SetFontGreen(self.eval_id)} calculated")
         return 0
 
@@ -67,6 +69,16 @@ class CEvaluationWithFactorClass(CEvaluation):
 
     def _set_index(self, eval_df: pd.DataFrame):
         eval_df.set_index(["factor", "factor_class"], inplace=True)
+        return 0
+
+
+class CEvaluationPortfolio(CEvaluation):
+    def _add_args_to(self, res: dict, simu_id: str):
+        res.update({"portfolio": simu_id})
+        return 0
+
+    def _set_index(self, eval_df: pd.DataFrame):
+        eval_df.set_index(["portfolio"], inplace=True)
         return 0
 
 
