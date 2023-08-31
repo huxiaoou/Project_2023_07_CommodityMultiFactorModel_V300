@@ -65,6 +65,40 @@ class CSignalReader(CSignal):
         return sig_df
 
 
+class CSignalMA(CSignalReader):
+    def __init__(self, src_sig_id: str, src_sig_save_dir: str, mov_ave_win: int, **kwargs):
+        sig_id = f"{src_sig_id}_MA{mov_ave_win:02d}"
+        self.src_sig_id, self.src_sid_dir = src_sig_id, src_sig_save_dir
+        self.src_sig_lib_struct = get_signal_lib_struct(src_sig_id)
+        self.mov_ave_win = mov_ave_win
+        super().__init__(sig_id=sig_id, **kwargs)
+
+    def __get_src_sig_lib_reader(self) -> CManagerLibReader:
+        lib_reader = CManagerLibReader(self.src_sid_dir, self.src_sig_lib_struct.m_lib_name)
+        lib_reader.set_default(self.src_sig_lib_struct.m_tab.m_table_name)
+        return lib_reader
+
+    def __get_src_signal(self, bgn_date: str, stp_date: str) -> pd.DataFrame:
+        src_lib_reader = self.__get_src_sig_lib_reader()
+        src_sig_df = src_lib_reader.read_by_conditions(t_conditions=[
+            ("trade_date", ">=", bgn_date),
+            ("trade_date", "<", stp_date),
+        ], t_value_columns=["trade_date", "instrument", "value"])
+        src_lib_reader.close()
+        return src_sig_df
+
+    def _get_update_df(self, run_mode: str, bgn_date: str, stp_date: str) -> pd.DataFrame:
+        iter_dates = self.calendar.get_iter_list(bgn_date, stp_date, True)
+        base_date = self.calendar.get_next_date(iter_dates[0], -self.mov_ave_win + 1)
+        src_sig_df = self.__get_src_signal(base_date, stp_date)
+        src_sig_pivot_df = pd.pivot_table(data=src_sig_df, index="trade_date", columns="instrument", values="value")
+        mov_ave_df = src_sig_pivot_df.rolling(window=self.mov_ave_win, min_periods=1).mean()
+        wgt_abs_sum = mov_ave_df.abs().sum(axis=1)
+        mov_ave_df_norm = mov_ave_df.div(wgt_abs_sum, axis=0).fillna(0)
+        update_df = mov_ave_df_norm.stack(dropna=False).reset_index()
+        return update_df
+
+
 class CSignalWithAvailableUniverse(CSignalReader):
     def __init__(self, available_universe_dir: str, **kwargs):
         self.available_universe_dir = available_universe_dir
@@ -154,6 +188,24 @@ def cal_signals_hedge_mp(proc_num: int, factors: tuple[str], uni_props: tuple[st
     for factor, uni_prop in ittl.product(factors, uni_props):
         s = CSignalHedge(uni_prop=uni_prop, src_factor_dir=src_factor_dir, src_factor_id=factor,
                          available_universe_dir=available_universe_dir, sig_save_dir=signals_save_dir, calendar=calendar)
+        pool.apply_async(s.main, kwds=kwargs)
+    pool.close()
+    pool.join()
+    t1 = dt.datetime.now()
+    print(f"... {SetFontGreen(tips)} calculated")
+    print(f"... total time consuming: {SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
+    return 0
+
+
+def cal_signals_hedge_ma_mp(proc_num: int, factors: tuple[str], uni_props: tuple[str], mov_ave_wins: tuple[int],
+                            src_signals_save_dir: str, signals_save_dir: str,
+                            calendar: CCalendar, tips: str, **kwargs):
+    t0 = dt.datetime.now()
+    pool = mp.Pool(processes=proc_num)
+    for factor, uni_prop, mov_ave_win in ittl.product(factors, uni_props, mov_ave_wins):
+        src_sig_id = f"{factor}_UHP{int(uni_prop * 10):02d}"
+        s = CSignalMA(src_sig_id=src_sig_id, src_sig_save_dir=src_signals_save_dir, mov_ave_win=mov_ave_win,
+                      sig_save_dir=signals_save_dir, calendar=calendar)
         pool.apply_async(s.main, kwds=kwargs)
     pool.close()
     pool.join()

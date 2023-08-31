@@ -87,8 +87,26 @@ def eval_hedge_mp(proc_num: int, factors: list[str], factors_neutral: list[str],
     pool = mp.Pool(processes=proc_num)
     for (fs, fid), uni_prop in ittl.product([(factors, "raw"), (factors_neutral, "neu")], uni_props):
         uni_prop_lbl = f"UHP{int(uni_prop * 10):02d}"
-        simu_ids = [f"{_}_{uni_prop_lbl}" for _ in fs]
         eval_id = f"factors_{fid}_{uni_prop_lbl}"
+        simu_ids = [f"{_}_{uni_prop_lbl}" for _ in fs]
+        agent_eval = CEvaluationWithFactorClass(eval_id=eval_id, simu_ids=simu_ids, **kwargs)
+        pool.apply_async(agent_eval.main)
+    pool.close()
+    pool.join()
+    t1 = dt.datetime.now()
+    print(f"... {SetFontGreen('Summary for Hedge Test')} calculated")
+    print(f"... total time consuming:{SetFontGreen(f'{(t1 - t0).total_seconds():.2f}')} seconds")
+    return 0
+
+
+def eval_hedge_ma_mp(proc_num: int, factors: list[str], factors_neutral: list[str], uni_props: tuple[float], mov_ave_wins: tuple[int], **kwargs):
+    t0 = dt.datetime.now()
+    pool = mp.Pool(processes=proc_num)
+    for (fs, fid), uni_prop, mov_ave_win in ittl.product([(factors, "raw"), (factors_neutral, "neu")], uni_props, mov_ave_wins):
+        uni_prop_lbl = f"UHP{int(uni_prop * 10):02d}"
+        ma_lbl = f"MA{mov_ave_win:02d}"
+        eval_id = f"factors_{fid}_{uni_prop_lbl}_{ma_lbl}"
+        simu_ids = [f"{_}_{uni_prop_lbl}_{ma_lbl}" for _ in fs]
         agent_eval = CEvaluationWithFactorClass(eval_id=eval_id, simu_ids=simu_ids, **kwargs)
         pool.apply_async(agent_eval.main)
     pool.close()
@@ -123,6 +141,33 @@ def concat_eval_results(uni_props: tuple[float], eval_save_dir: str):
     return 0
 
 
+def concat_eval_ma_results(uni_props: tuple[float], mov_ave_wins: tuple[int], eval_save_dir: str):
+    raw_dfs, neu_dfs = [], []
+    for uni_prop, mov_ave_win in ittl.product(uni_props, mov_ave_wins):
+        uni_prop_lbl = f"UHP{int(uni_prop * 10):02d}"
+        ma_lbl = f"MA{mov_ave_win:02d}"
+        sub_eval_raw_file = f"eval-factors_raw_{uni_prop_lbl}_{ma_lbl}.csv"
+        sub_eval_neu_file = f"eval-factors_neu_{uni_prop_lbl}_{ma_lbl}.csv"
+        sub_eval_raw_path = os.path.join(eval_save_dir, sub_eval_raw_file)
+        sub_eval_neu_path = os.path.join(eval_save_dir, sub_eval_neu_file)
+        sub_eval_raw_df = pd.read_csv(sub_eval_raw_path)
+        sub_eval_neu_df = pd.read_csv(sub_eval_neu_path)
+        sub_eval_raw_df["uni_prop"] = uni_prop
+        sub_eval_neu_df["uni_prop"] = uni_prop
+        sub_eval_raw_df["mov_ave_win"] = mov_ave_win
+        sub_eval_neu_df["mov_ave_win"] = mov_ave_win
+        raw_dfs.append(sub_eval_raw_df)
+        neu_dfs.append(sub_eval_neu_df)
+
+    raw_df_concat = pd.concat(raw_dfs, axis=0, ignore_index=True).sort_values(by=["factor", "sharpe_ratio"], ascending=[True, False])
+    neu_df_concat = pd.concat(neu_dfs, axis=0, ignore_index=True).sort_values(by=["factor", "sharpe_ratio"], ascending=[True, False])
+    raw_concat_file = os.path.join(eval_save_dir, "eval-factors_raw-concat-ma.csv")
+    neu_concat_file = os.path.join(eval_save_dir, "eval-factors_neu-concat-ma.csv")
+    raw_df_concat.to_csv(raw_concat_file, index=False, float_format="%.2f")
+    neu_df_concat.to_csv(neu_concat_file, index=False, float_format="%.2f")
+    return 0
+
+
 def plot_selected_factors_and_uni_prop(
         selected_factors_and_uni_prop: tuple[tuple], save_id: str,
         simu_save_dir: str, eval_save_dir: str):
@@ -139,5 +184,26 @@ def plot_selected_factors_and_uni_prop(
         nav_data[simu_id] = simu_nav_df["nav"]
     nav_df = pd.DataFrame(nav_data)
     plot_lines(t_plot_df=nav_df, t_fig_name=f"selected-factors_and_uni_prop-{save_id}-nav", t_save_dir=eval_save_dir)
+    print(f"... @ {dt.datetime.now()} selected factors and uni-prop for {SetFontGreen(save_id)} plotted")
+    return 0
+
+
+def plot_selected_factors_and_uni_prop_ma(
+        selected_factors_and_uni_prop_ma: tuple[tuple], save_id: str,
+        simu_save_dir: str, eval_save_dir: str):
+    nav_data = {}
+    for factor, uni_prop, mov_ave_win in selected_factors_and_uni_prop_ma:
+        uni_prop_lbl = f"UHP{int(uni_prop * 10):02d}"
+        ma_lbl = f"MA{mov_ave_win:02d}"
+        if save_id == "raw":
+            simu_id = f"{factor}_{uni_prop_lbl}_{ma_lbl}"
+        else:
+            simu_id = f"{factor}_WS_{uni_prop_lbl}_{ma_lbl}"
+        simu_nav_file = f"nav-{simu_id}.csv.gz"
+        simu_nav_path = os.path.join(simu_save_dir, simu_nav_file)
+        simu_nav_df = pd.read_csv(simu_nav_path, dtype={"trade_date": str}).set_index("trade_date")
+        nav_data[simu_id] = simu_nav_df["nav"]
+    nav_df = pd.DataFrame(nav_data)
+    plot_lines(t_plot_df=nav_df, t_fig_name=f"selected-factors_and_uni_prop_ma-{save_id}-nav", t_save_dir=eval_save_dir)
     print(f"... @ {dt.datetime.now()} selected factors and uni-prop for {SetFontGreen(save_id)} plotted")
     return 0

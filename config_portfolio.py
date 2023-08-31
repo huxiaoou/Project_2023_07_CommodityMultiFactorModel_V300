@@ -75,15 +75,79 @@ selected_neu_factors_and_uni_prop = (
     ("SKEW010LD063", 0.4),
 )
 
+selected_raw_factors_and_uni_prop_ma = (
+    ("BASISA063", 0.3, 10),
+    ("CSP063", 0.3, 5),
+    ("CSP189LD021", 0.4, 5),
+    ("CTP126", 0.3, 5),
+    ("CTP189LD021", 0.4, 5),
+    ("CVP126", 0.2, 5),
+    ("CVP189LD021", 0.4, 15),
+    ("RSBR252", 0.4, 5),
+    ("RSLR252", 0.3, 5),
+    ("SKEW010", 0.2, 5),
+    ("SKEW010LD063", 0.4, 5),
+    ("HRA063", 0.4, 5),
+    ("TSA063", 0.4, 5),
+    ("NETDOIBD021", 0.2, 5),
+)
+
+selected_neu_factors_and_uni_prop_ma = (
+    ("BASISA063", 0.4, 15),
+    ("CSP126", 0.4, 5),
+    ("CSP189LD021", 0.4, 15),
+    ("CTP126", 0.4, 5),
+    ("CTP189LD063", 0.4, 5),
+    ("CVP126", 0.2, 15),
+    ("CVP189LD063", 0.4, 15),
+    ("NETDOIWA021", 0.3, 5),
+    ("NETDOIWBD189", 0.2, 15),
+    ("RSBR252", 0.4, 5),
+    ("RSLR252", 0.4, 5),
+    ("SKEW010", 0.2, 5),
+    ("SKEW010LD063", 0.4, 5),
+    ("SKEW189LD021", 0.2, 5),
+
+    # ("BASISA063", 0.2, 5),
+    # ("CSP126", 0.2, 5),
+    # ("CSP189LD021", 0.2, 5),
+    # ("CTP126", 0.2, 5),
+    # ("CTP189LD063", 0.2, 5),
+    # ("CVP126", 0.2, 5),
+    # ("CVP189LD063", 0.2, 5),
+    # ("NETDOIWA021", 0.2, 5),
+    # ("NETDOIWBD189", 0.2, 5),
+    # ("RSBR252", 0.2, 5),
+    # ("RSLR252", 0.2, 5),
+    # ("SKEW010", 0.2, 5),
+    # ("SKEW010LD063", 0.2, 5),
+    # ("SKEW189LD021", 0.2, 5),
+)
+
 src_signal_ids_raw = [f"{fac}_UHP{int(uhp * 10):02d}" for fac, uhp in selected_raw_factors_and_uni_prop]
 src_signal_ids_neu = [f"{fac}_WS_UHP{int(uhp * 10):02d}" for fac, uhp in selected_neu_factors_and_uni_prop]
-size_raw, size_neu = len(src_signal_ids_raw), len(src_signal_ids_neu)
-trn_win, lbd = 12, 20
+src_signal_ids_raw_ma = [f"{fac}_UHP{int(uhp * 10):02d}_MA{maw:02d}" for fac, uhp, maw in selected_raw_factors_and_uni_prop_ma]
+src_signal_ids_neu_ma = [f"{fac}_WS_UHP{int(uhp * 10):02d}_MA{maw:02d}" for fac, uhp, maw in selected_neu_factors_and_uni_prop_ma]
+size_raw, size_raw_ma = len(src_signal_ids_raw), len(src_signal_ids_raw_ma)
+size_neu, size_neu_ma = len(src_signal_ids_neu), len(src_signal_ids_neu_ma)
+
+trn_win, lbd = 3, 20  # optimized
+# trn_win, lbd = 1, 20  # test
 min_model_days = int(trn_win * 21 * 0.9)
-test_portfolio_ids = ["raw_fix", "neu_fix", "raw_min_uty_con", "neu_min_uty_con"]
+test_portfolio_ids = [
+    "raw_fix",
+    "neu_fix",
+    "raw_min_uty_con",
+    "neu_min_uty_con",
+    "raw_fix_ma",
+    "neu_fix_ma",
+    "raw_min_uty_con_ma",
+    "neu_min_uty_con_ma",
+]
 
 # unilateral hold proportion
 uni_props = (0.2, 0.3, 0.4)
+mov_ave_wins = (5, 10, 15)
 
 # secondary parameters
 cost_rate_hedge_test = 0e-4

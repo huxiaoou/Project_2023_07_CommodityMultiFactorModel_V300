@@ -83,15 +83,18 @@ ic_tests_summary_dir = os.path.join(factors_library_dir, "ic_tests_summary")
 # portfolio
 signals_dir = os.path.join(portfolio_dir, "signals")
 signals_hedge_test_dir = os.path.join(signals_dir, "hedge_test")
+signals_hedge_test_ma_dir = os.path.join(signals_dir, "hedge_test_ma")
 signals_portfolios_dir = os.path.join(signals_dir, "portfolios")
 signals_optimized_dir = os.path.join(signals_dir, "optimized")
 
 simulations_dir = os.path.join(portfolio_dir, "simulations")
 simulations_hedge_test_dir = os.path.join(simulations_dir, "hedge_test")
+simulations_hedge_test_ma_dir = os.path.join(simulations_dir, "hedge_test_ma")
 simulations_portfolios_dir = os.path.join(simulations_dir, "portfolios")
 
 evaluations_dir = os.path.join(portfolio_dir, "evaluations")
 evaluations_hedge_test_dir = os.path.join(evaluations_dir, "hedge_test")
+evaluations_hedge_test_ma_dir = os.path.join(evaluations_dir, "hedge_test_ma")
 evaluations_portfolios_dir = os.path.join(evaluations_dir, "portfolios")
 
 if __name__ == "__main__":
@@ -112,13 +115,16 @@ if __name__ == "__main__":
     check_and_mkdir(portfolio_dir)
     check_and_mkdir(signals_dir)
     check_and_mkdir(signals_hedge_test_dir)
+    check_and_mkdir(signals_hedge_test_ma_dir)
     check_and_mkdir(signals_portfolios_dir)
     check_and_mkdir(signals_optimized_dir)
     check_and_mkdir(simulations_dir)
     check_and_mkdir(simulations_hedge_test_dir)
+    check_and_mkdir(simulations_hedge_test_ma_dir)
     check_and_mkdir(simulations_portfolios_dir)
     check_and_mkdir(evaluations_dir)
     check_and_mkdir(evaluations_hedge_test_dir)
+    check_and_mkdir(evaluations_hedge_test_ma_dir)
     check_and_mkdir(evaluations_portfolios_dir)
 
     print("... directory system for this project has been established.")
