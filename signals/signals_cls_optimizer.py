@@ -1,5 +1,5 @@
 import os
-# import warnings
+import warnings
 import numpy as np
 import pandas as pd
 from skyrim.whiterun import CCalendarMonthly
@@ -19,6 +19,10 @@ def portfolio_variance(w: np.ndarray, sigma: np.ndarray) -> float:
 def portfolio_utility(w: np.ndarray, mu: np.ndarray, sigma: np.ndarray, lbd: float) -> float:
     # u = -2 w*m/l +wSw  <=> v = w*m - l/2 * wSw
     return -2 * portfolio_return(w, mu) / lbd + portfolio_variance(w, sigma)
+
+
+def portfolio_sharpe(w: np.ndarray, mu: np.ndarray, sigma: np.ndarray):
+    return -portfolio_return(w, mu) / np.sqrt(portfolio_variance(w, sigma))
 
 
 def minimize_utility(mu: np.ndarray, sigma: np.ndarray, lbd) -> (np.ndarray, float):
@@ -58,14 +62,39 @@ def minimize_utility_con(mu: np.ndarray, sigma: np.ndarray, lbd: float,
         return None, None
 
 
+def minimize_neg_sharpe(mu: np.ndarray, sigma: np.ndarray,
+                        bounds: tuple = (0, 1),
+                        maxiter: int = 10000,
+                        tol: float = None) -> (np.ndarray, float):
+    _p, _ = sigma.shape
+    warnings.filterwarnings("ignore")
+    _res = minimize(
+        fun=portfolio_sharpe,
+        x0=np.ones(_p) / _p,
+        args=(mu, sigma),
+        bounds=[bounds] * _p,
+        constraints=NonlinearConstraint(lambda z: np.sum(np.abs(z)), 1, 1),
+        # constraints=LinearConstraint(np.ones(_p), 1, 1),
+        options={"maxiter": maxiter},
+        tol=tol,
+    )
+    warnings.filterwarnings("always")
+    if _res.success:
+        return _res.x, _res.fun
+    else:
+        print("ERROR! Optimizer exits with a failure")
+        print("Detailed Description: {}".format(_res.message))
+        return None, None
+
+
 class CSignalOptimizer(object):
     def __init__(self, save_id: str, src_signal_ids: list,
-                 trn_win: int, min_model_days: int, lbd: float,
+                 trn_win: int, min_model_days: int,
                  simu_test_dir: str, optimized_dir: str,
                  calendar: CCalendarMonthly):
         self.save_id = save_id
         self.src_signal_ids, self.src_signal_qty = src_signal_ids, len(src_signal_ids)
-        self.trn_win, self.lbd = trn_win, lbd
+        self.trn_win = trn_win
         self.min_model_days = min_model_days
 
         self.simu_test_dir = simu_test_dir
@@ -162,11 +191,15 @@ class CSignalOptimizer(object):
 
 
 class CSignalOptimizerMinUty(CSignalOptimizer):
+    def __init__(self, lbd: float, **kwargs):
+        self.lbd = lbd
+        super().__init__(**kwargs)
+
     def _optimize(self, mu: pd.Series, sgm: pd.DataFrame) -> (np.ndarray, float):
         return minimize_utility(mu=mu.values, sigma=sgm.values, lbd=self.lbd)
 
 
-class CSignalOptimizerMinUtyCon(CSignalOptimizer):
+class CSignalOptimizerMinUtyCon(CSignalOptimizerMinUty):
     def __init__(self, weight_bounds: tuple[float, float], total_pos_lim: tuple[float, float], maxiter: int, **kwargs):
         self.weight_bounds = weight_bounds
         self.total_pos_lim = total_pos_lim
@@ -177,3 +210,15 @@ class CSignalOptimizerMinUtyCon(CSignalOptimizer):
         return minimize_utility_con(mu=mu.values, sigma=sgm.values, lbd=self.lbd,
                                     bounds=self.weight_bounds, pos_lim=self.total_pos_lim,
                                     maxiter=self.maxiter)
+
+
+class CSignalOptimizerMinNegSharpe(CSignalOptimizer):
+    def __init__(self, weight_bounds: tuple[float, float], maxiter: int, **kwargs):
+        self.weight_bounds = weight_bounds
+        self.maxiter = maxiter
+        super().__init__(**kwargs)
+
+    def _optimize(self, mu: pd.Series, sgm: pd.DataFrame) -> (np.ndarray, float):
+        return minimize_neg_sharpe(mu=mu.values, sigma=sgm.values,
+                                   bounds=self.weight_bounds,
+                                   maxiter=self.maxiter)

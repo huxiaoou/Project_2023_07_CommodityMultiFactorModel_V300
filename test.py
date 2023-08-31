@@ -79,16 +79,17 @@ elif test_id == "simu2":
                            calendar=calendar)
         simu.main()
 elif test_id == "opt":
-    from signals.signals_cls_optimizer import CSignalOptimizerMinUty, CSignalOptimizerMinUtyCon, CCalendarMonthly
+    from signals.signals_cls_optimizer import CSignalOptimizerMinUty, CSignalOptimizerMinUtyCon, CSignalOptimizerMinNegSharpe, CCalendarMonthly
     from signals.signals_cls_portfolio import CSignalCombineFromOtherSignalsWithDynWeight, CSignalCombineFromOtherSignalsWithFixWeight
     from factors.factors_cls_base import CDbByInstrument
     from simulations.simulation_cls import CSimulation
     from simulations.evaluations_cls import CEvaluationPortfolio
-    from config_portfolio import cost_rate_portfolios, performance_indicators, size_raw, size_neu, src_signal_ids_raw, src_signal_ids_neu, min_model_days
+    from config_portfolio import cost_rate_portfolios, performance_indicators, size_raw, size_neu, src_signal_ids_raw, src_signal_ids_neu
     from config_project import concerned_instruments_universe
     import sys
 
     trn_win, lbd, fee_adj_rate = int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3])
+    min_model_days = int(trn_win * 21 * 0.9)
     calendar = CCalendarMonthly(calendar_path)
     bgn_date, stp_date = "20150701", "20230801"
 
@@ -190,9 +191,28 @@ elif test_id == "opt":
                        calendar=calendar)
     simu.main()
 
+    # --- NEU sharpe
+    optimizer = CSignalOptimizerMinNegSharpe(save_id="neu_max_sharpe", src_signal_ids=src_signal_ids_neu,
+                                             weight_bounds=(1 / size_neu / 2, 2 / size_neu), maxiter=10000,
+                                             trn_win=trn_win, min_model_days=min_model_days,
+                                             simu_test_dir=simulations_hedge_test_dir, optimized_dir=signals_optimized_dir,
+                                             calendar=calendar)
+    optimizer.main("O", bgn_date, stp_date)
+    signal_weight_df = optimizer.get_signal_weight(bgn_date, stp_date)
+    signals = CSignalCombineFromOtherSignalsWithDynWeight(src_signal_weight=signal_weight_df,
+                                                          src_signal_ids=src_signal_ids_neu, src_signal_dir=signals_hedge_test_dir, sig_id="neu_max_sharpe",
+                                                          sig_save_dir=signals_portfolios_dir, calendar=calendar)
+    signals.main("O", bgn_date, stp_date)
+    simu = CSimulation(signal=signals, test_bgn_date=bgn_date, test_stp_date=stp_date,
+                       cost_rate=cost_rate_portfolios * fee_adj_rate, test_universe=concerned_instruments_universe,
+                       manager_major_return=CDbByInstrument(futures_by_instrument_dir, major_return_db_name),
+                       simu_save_dir=simulations_portfolios_dir,
+                       calendar=calendar)
+    simu.main()
+
     # --- evaluation
     evaluator = CEvaluationPortfolio(
-        eval_id="test", simu_ids=["raw_eql", "neu_eql", "raw_min_uty_con", "neu_min_uty_con", "raw_min_uty", "neu_min_uty"],
+        eval_id="test", simu_ids=["raw_fix", "neu_fix", "raw_min_uty_con", "neu_min_uty_con", "raw_min_uty", "neu_min_uty", "neu_max_sharpe"],
         indicators=performance_indicators, simu_save_dir=simulations_portfolios_dir,
         eval_save_dir=evaluations_portfolios_dir, annual_risk_free_rate=0,
     )
